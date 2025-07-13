@@ -1,0 +1,6 @@
+{
+  "machines": [
+    {"name": "M1", "port": "COM1", "baud": 115200},
+    {"name": "M2", "port": "COM2", "baud": 115200}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "node_name": "cam_slicer_bridge",
+  "topics": {
+    "position": "/robot/position",
+    "state": "/robot/state",
+    "command": "/robot/command",
+    "job": "/robot/job",
+    "error": "/robot/error",
+    "feedback": "/robot/feedback"
+  }
+}

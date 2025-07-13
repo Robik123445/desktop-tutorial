@@ -1,0 +1,26 @@
+Module: cam_slicer.core
+  - toolpath_to_gcode: MISSING
+  - process_toolpath: OK
+  - tests: yes
+
+Module: cam_slicer.modules
+  - MISSING directory
+Module: cam_slicer.visualizer
+  - preview_gcode: OK
+  - render_surface_and_toolpath: MISSING
+  - tests: no
+
+Module: cam_slicer.sensors
+  - generate_heightmap: OK
+  - tests: yes
+
+Module: cam_slicer.motion
+  - MISSING directory
+Module: cam_slicer.config
+  - get_machine_config: OK
+  - tests: no
+
+README.md present
+Summary
+modules without tests: 2
+functions lacking docs: 2

@@ -1,0 +1,10 @@
+{
+    "START_SPINDLE": ["M3 S1000", "G4 P1"],
+    "END_SPINDLE": ["M5"],
+    "PAUSE": ["M0"]
+    ,
+    "TOOLCHANGE_router": ["M5", "T1 M6", "G4 P1"],
+    "TOOLCHANGE_laser": ["M5", "T2 M6", "G4 P1"],
+    "TOOLCHANGE_engraver": ["M5", "T3 M6", "G4 P1"],
+    "TOOLCHANGE_print_head": ["M104 S200", "T4 M6", "G4 P1"]
+}

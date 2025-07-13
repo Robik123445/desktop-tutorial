@@ -1,0 +1,757 @@
+[
+  {
+    "file": "function_scanner.py",
+    "function": "collect_functions",
+    "doc": "Recursively collect top-level functions."
+  },
+  {
+    "file": "function_scanner.py",
+    "function": "print_functions_list",
+    "doc": "Print collected functions as JSON and return the string."
+  },
+  {
+    "file": "function_scanner.py",
+    "function": "parse_args",
+    "doc": "Parse command line arguments."
+  },
+  {
+    "file": "function_scanner.py",
+    "function": "main",
+    "doc": "Entry point for command-line use."
+  },
+  {
+    "file": "tests/test_digital_twin.py",
+    "function": "test_digital_twin_monitoring",
+    "doc": "Test monitoring and logging with DigitalTwin."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_parse_gcode",
+    "doc": "Test converting G-code lines to coordinate tuples."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_preview_gcode",
+    "doc": "Test preview rendering of G-code paths."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_render_surface_and_toolpath",
+    "doc": "Test 3D overlay of heightmap and toolpath."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_align_toolpath_to_surface",
+    "doc": "Test aligning a tool to a scanned surface mesh."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_simulate_motion_over_surface",
+    "doc": "Test animation of tool motion over a surface."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_analyze_toolpath_vs_surface",
+    "doc": "Test collision and clearance detection against a heightmap."
+  },
+  {
+    "file": "tests/test_visualizer.py",
+    "function": "test_export_preview_image",
+    "doc": "Test saving a preview image from G-code."
+  },
+  {
+    "file": "tests/test_nesting.py",
+    "function": "test_nest_shapes_basic",
+    "doc": "Test simple nesting of shapes within sheet bounds."
+  },
+  {
+    "file": "tests/test_plugin_manager.py",
+    "function": "test_plugin_manager_load",
+    "doc": "Test loading a plugin from a custom directory."
+  },
+  {
+    "file": "tests/test_plugin_manager.py",
+    "function": "test_default_plugins_loaded",
+    "doc": "Test built-in plugins load and execute correctly."
+  },
+  {
+    "file": "tests/test_plugin_manager.py",
+    "function": "test_plugin_error_handling",
+    "doc": "Test that faulty plugins are skipped without crashing."
+  },
+  {
+    "file": "tests/test_plugin_manager.py",
+    "function": "test_load_summary_logged",
+    "doc": "Plugin loader logs count of loaded and failed plugins."
+  },
+  {
+    "file": "tests/test_plugin_manager.py",
+    "function": "test_reload_plugins",
+    "doc": "Test plugin reload picks up new modules."
+  },
+  {
+    "file": "tests/test_system_report.py",
+    "function": "test_generate_system_report",
+    "doc": "Test generation of a system status report."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_detect_objects",
+    "doc": "Test generic object detection using a stub model."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_detect_board_position",
+    "doc": "Test detecting board position from an image."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_get_transform_from_detection",
+    "doc": "Test conversion from detection dict to TransformConfig."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_auto_transform_gcode",
+    "doc": "Test automatic G-code generation from detection data."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_auto_transform_gcode_with_scaling",
+    "doc": "Toolpath is scaled to match detected board size."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_run_live_detection",
+    "doc": "Test live detection loop with warning on person detection."
+  },
+  {
+    "file": "tests/test_vision_module.py",
+    "function": "test_process_camera_to_gcode",
+    "doc": "Test full workflow from image to saved G-code."
+  },
+  {
+    "file": "tests/test_probe_generator.py",
+    "function": "test_generate_and_export_heightmap",
+    "doc": "Test probing grid points and exporting heightmap to JSON."
+  },
+  {
+    "file": "tests/test_probe_generator.py",
+    "function": "test_generate_heightmap_with_density",
+    "doc": "Ensure density parameter calculates grid resolution."
+  },
+  {
+    "file": "tests/test_tool_database.py",
+    "function": "test_add_list_remove",
+    "doc": "Test adding, listing and removing tools."
+  },
+  {
+    "file": "tests/test_tool_database.py",
+    "function": "test_save_load",
+    "doc": "Test saving and loading tools from JSON."
+  },
+  {
+    "file": "tests/test_geofence.py",
+    "function": "test_is_inside",
+    "doc": "Test detection of points inside forbidden zones."
+  },
+  {
+    "file": "tests/test_geofence.py",
+    "function": "test_filter_and_air_moves",
+    "doc": "Test filtering and air-move adjustment of toolpath."
+  },
+  {
+    "file": "tests/test_geofence.py",
+    "function": "test_add_ai_zones",
+    "doc": "Test adding forbidden and air-move zones from AI detections."
+  },
+  {
+    "file": "tests/test_hybrid_operations.py",
+    "function": "test_assign_hybrid_operations_default",
+    "doc": "Test mapping operations to default tool heads."
+  },
+  {
+    "file": "tests/test_hybrid_operations.py",
+    "function": "test_assign_hybrid_operations_override",
+    "doc": "Test overriding the default operation mapping."
+  },
+  {
+    "file": "tests/test_shapes.py",
+    "function": "test_generate_adaptive_path_basic",
+    "doc": "Test generating a simple adaptive toolpath."
+  },
+  {
+    "file": "tests/test_shapes.py",
+    "function": "test_generate_adaptive_path_zigzag",
+    "doc": "Ensure zigzag mode returns line segments."
+  },
+  {
+    "file": "tests/test_feedback_advisor.py",
+    "function": "test_analyze_toolpath",
+    "doc": "Test AI feedback analysis for sharp angles and collisions."
+  },
+  {
+    "file": "tests/test_importers.py",
+    "function": "test_import_dwg",
+    "doc": "Test importing a simple DWG file."
+  },
+  {
+    "file": "tests/test_importers.py",
+    "function": "test_import_obj",
+    "doc": "Test importing an OBJ mesh into point data."
+  },
+  {
+    "file": "tests/test_importers.py",
+    "function": "test_vectorize_image_outline",
+    "doc": "Test vectorizing an image in outline mode."
+  },
+  {
+    "file": "tests/test_importers.py",
+    "function": "test_import_svg",
+    "doc": "Test importing a simple SVG polyline."
+  },
+  {
+    "file": "tests/test_sender.py",
+    "function": "test_stream_gcode_live",
+    "doc": "Test streaming G-code over serial in live mode."
+  },
+  {
+    "file": "tests/test_sender.py",
+    "function": "test_stream_gcode_to_grbl",
+    "doc": "Test blocking streaming to a GRBL controller."
+  },
+  {
+    "file": "tests/test_sender.py",
+    "function": "test_stream_gcode_to_grbl_error",
+    "doc": "Test error handling when GRBL returns an error."
+  },
+  {
+    "file": "tests/test_sender.py",
+    "function": "test_stream_gcode_interactive",
+    "doc": "Test interactive streaming with pause/resume support."
+  },
+  {
+    "file": "tests/test_sender.py",
+    "function": "test_live_gcode_streamer",
+    "doc": "Test LiveGcodeStreamer streaming all lines."
+  },
+  {
+    "file": "tests/test_cli_plugin_manager.py",
+    "function": "test_cli_list",
+    "doc": "Test listing available plugins via the CLI."
+  },
+  {
+    "file": "tests/test_cli_plugin_manager.py",
+    "function": "test_cli_run_with_args",
+    "doc": "Test running a plugin with extra arguments."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_get_header_footer_grbl",
+    "doc": "Test GRBL controller header and footer generation."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_get_header_footer_unknown",
+    "doc": "Ensure unsupported controller types raise ValueError."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_process_toolpath_climb",
+    "doc": "Test reversing toolpath for climb milling."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_process_toolpath_adaptive",
+    "doc": "Test adaptive strategy scaling of depths."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_transform_point",
+    "doc": "Test Cartesian rotation and offset of a point."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_transform_point_polar",
+    "doc": "Test polar to Cartesian conversion in transform_point."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_transformation",
+    "doc": "Test basic toolpath transformation into G-code."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_g0",
+    "doc": "Test generating rapid moves with transformation."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_arc",
+    "doc": "Test arc command generation for circular paths."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_offsets",
+    "doc": "Test applying work and tool offsets in G-code."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_apply_pressure_advance",
+    "doc": "Test pressure advance feedrate adjustment."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_pressure_advance",
+    "doc": "Test G-code output with pressure advance enabled."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_apply_input_shaping_zv",
+    "doc": "Test zero-vibration input shaping output."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_calculate_junction_velocity",
+    "doc": "Test junction velocity calculation for a corner."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_calculate_junction_velocity_straight",
+    "doc": "Test junction velocity with no angle change."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_plan_feedrate_with_lookahead",
+    "doc": "Test feedrate planning with a lookahead queue."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_transform_point_axis_limits",
+    "doc": "Test velocity clamping to axis limits."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_lookahead",
+    "doc": "Test lookahead-based feedrate in G-code generation."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_get_machine_config",
+    "doc": "Test retrieving predefined machine configuration."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_get_machine_config_unknown",
+    "doc": "Test error raised for unknown machine preset."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_zmap",
+    "doc": "Test Z-map height compensation in G-code."
+  },
+  {
+    "file": "tests/test_engine.py",
+    "function": "test_toolpath_to_gcode_macros",
+    "doc": "Test macro insertion at start, middle and end."
+  },
+  {
+    "file": "tests/test_function_scanner.py",
+    "function": "test_collect_functions",
+    "doc": "Test collecting functions from Python files."
+  },
+  {
+    "file": "tests/test_function_scanner.py",
+    "function": "test_print_functions_list",
+    "doc": "Test JSON printing of collected function data."
+  },
+  {
+    "file": "tests/test_function_scanner.py",
+    "function": "test_main_cli",
+    "doc": "Test CLI invocation of function scanner."
+  },
+  {
+    "file": "tests/test_optimizer.py",
+    "function": "test_optimize_toolpath_based_on_surface",
+    "doc": "Test adjusting feedrate based on surface analysis."
+  },
+  {
+    "file": "tests/test_optimizer.py",
+    "function": "test_optimize_toolpath",
+    "doc": "Test arc insertion and air move removal."
+  },
+  {
+    "file": "tests/test_optimizer.py",
+    "function": "test_optimize_toolpath_sequence",
+    "doc": "Test reordering segments to minimize travel."
+  },
+  {
+    "file": "tests/test_optimizer.py",
+    "function": "test_smooth_toolpath_corners",
+    "doc": "Test that sharp corners are replaced by arc instructions."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "emergency_stop",
+    "doc": "Trigger an emergency stop."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "detect_objects",
+    "doc": "Detect objects in an image using YOLOv8 nano."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "detect_board_position",
+    "doc": "Detect a board object and return its position."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "get_transform_from_detection",
+    "doc": "Return :class:`TransformConfig` created from a detection."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "auto_transform_gcode",
+    "doc": "Generate G-code for a toolpath aligned to a detected board."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "run_live_detection",
+    "doc": "Stream webcam feed and display YOLOv8 detections live."
+  },
+  {
+    "file": "experimental/vision_module.py",
+    "function": "process_camera_to_gcode",
+    "doc": "Detect board position from an image and generate G-code."
+  },
+  {
+    "file": "cam_slicer/shapes.py",
+    "function": "generate_adaptive_path",
+    "doc": "Generate spiral or zigzag toolpaths with near-constant engagement."
+  },
+  {
+    "file": "cam_slicer/logging_config.py",
+    "function": "setup_logging",
+    "doc": "Configure logging for the application."
+  },
+  {
+    "file": "cam_slicer/digital_twin.py",
+    "function": "_parse_status",
+    "doc": "Parse a simple status line into a dictionary."
+  },
+  {
+    "file": "cam_slicer/plugin_manager.py",
+    "function": "load_plugins",
+    "doc": "Load plugins from ``plugin_dir`` or the default folder."
+  },
+  {
+    "file": "cam_slicer/plugin_manager.py",
+    "function": "get_plugin",
+    "doc": "Return loaded plugin by name."
+  },
+  {
+    "file": "cam_slicer/plugin_manager.py",
+    "function": "get_all_plugins",
+    "doc": "Return list of loaded plugin info dictionaries."
+  },
+  {
+    "file": "cam_slicer/plugin_manager.py",
+    "function": "reload_plugins",
+    "doc": "Reload plugins from the previously used directory."
+  },
+  {
+    "file": "cam_slicer/cli_plugin_manager.py",
+    "function": "list_plugins",
+    "doc": "Print all loaded plugins."
+  },
+  {
+    "file": "cam_slicer/cli_plugin_manager.py",
+    "function": "run_plugin",
+    "doc": "Run the named plugin with optional arguments."
+  },
+  {
+    "file": "cam_slicer/cli_plugin_manager.py",
+    "function": "main",
+    "doc": "Entry point for the CLI."
+  },
+  {
+    "file": "cam_slicer/sensors/probe_generator.py",
+    "function": "generate_heightmap",
+    "doc": "Probe XY grid and return a heightmap."
+  },
+  {
+    "file": "cam_slicer/sensors/probe_generator.py",
+    "function": "export_heightmap_to_json",
+    "doc": "Export heightmap dictionary to a JSON file."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "polar_to_cartesian",
+    "doc": "Convert polar coordinates to cartesian."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "apply_offsets",
+    "doc": "Apply work, tool and shift offsets to coordinates."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "transform_point",
+    "doc": "Apply rotation, scaling and offsets to a point."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "apply_pressure_advance",
+    "doc": "Return compensated feedrate using a simple pressure advance model."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "calculate_junction_velocity",
+    "doc": "Return limited feedrate for smoother corners."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "_zv_kernel",
+    "doc": "Return discrete ZV input shaping kernel."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "apply_input_shaping",
+    "doc": "Filter motion points using a Zero Vibration (ZV) kernel."
+  },
+  {
+    "file": "cam_slicer/motion/kinematics.py",
+    "function": "plan_feedrate_with_lookahead",
+    "doc": "Calculate feedrates ahead of time using a lookahead queue."
+  },
+  {
+    "file": "cam_slicer/plugins/reverse_path.py",
+    "function": "register",
+    "doc": "Register the reverse path plugin."
+  },
+  {
+    "file": "cam_slicer/plugins/adaptive_path.py",
+    "function": "register",
+    "doc": "Register the adaptive path plugin."
+  },
+  {
+    "file": "cam_slicer/core/engine.py",
+    "function": "_get_header_footer",
+    "doc": "Return header and footer for the given controller type."
+  },
+  {
+    "file": "cam_slicer/core/engine.py",
+    "function": "process_toolpath",
+    "doc": "Modify the toolpath based on cutting strategy."
+  },
+  {
+    "file": "cam_slicer/core/engine.py",
+    "function": "_arc_command",
+    "doc": "Generate G2/G3 command based on orientation around a center."
+  },
+  {
+    "file": "cam_slicer/core/engine.py",
+    "function": "toolpath_to_gcode",
+    "doc": "Convert toolpath to G-code lines with optional transformations."
+  },
+  {
+    "file": "cam_slicer/sender/serial_stream.py",
+    "function": "_read_until_ok",
+    "doc": "Read from serial until a line is received."
+  },
+  {
+    "file": "cam_slicer/sender/serial_stream.py",
+    "function": "stream_gcode_live",
+    "doc": "Stream G-code line by line and wait for 'ok'."
+  },
+  {
+    "file": "cam_slicer/sender/grbl_streamer.py",
+    "function": "_input_listener",
+    "doc": "Background thread listening for user commands."
+  },
+  {
+    "file": "cam_slicer/sender/grbl_streamer.py",
+    "function": "stream_gcode_interactive",
+    "doc": "Stream ``filepath`` to a GRBL controller with pause/resume support."
+  },
+  {
+    "file": "cam_slicer/sender/grbl_streamer.py",
+    "function": "main",
+    "doc": "CLI entry point."
+  },
+  {
+    "file": "cam_slicer/sender/serial_streamer.py",
+    "function": "_wait_for_ok",
+    "doc": "Wait for an ``ok`` response from GRBL."
+  },
+  {
+    "file": "cam_slicer/sender/serial_streamer.py",
+    "function": "stream_gcode_to_grbl",
+    "doc": "Send a G-code file to a GRBL controller line by line."
+  },
+  {
+    "file": "cam_slicer/importers/image_vectorizer.py",
+    "function": "_skeletonize",
+    "doc": "Return morphological skeleton of a binary image."
+  },
+  {
+    "file": "cam_slicer/importers/image_vectorizer.py",
+    "function": "import_and_vectorize_image",
+    "doc": "Load PNG/JPG and vectorize to a list of paths."
+  },
+  {
+    "file": "cam_slicer/importers/image_vectorizer.py",
+    "function": "_parse_points",
+    "doc": ""
+  },
+  {
+    "file": "cam_slicer/importers/image_vectorizer.py",
+    "function": "import_svg",
+    "doc": "Parse basic SVG shapes into paths."
+  },
+  {
+    "file": "cam_slicer/importers/dwg_obj.py",
+    "function": "import_dwg",
+    "doc": "Load 2D shapes from a DWG or DXF file and return list of XY tuples."
+  },
+  {
+    "file": "cam_slicer/importers/dwg_obj.py",
+    "function": "import_obj",
+    "doc": "Load mesh vertices from an OBJ file."
+  },
+  {
+    "file": "cam_slicer/visualizer/preview.py",
+    "function": "parse_gcode",
+    "doc": "Parse G-code lines and return list of XYZ tuples."
+  },
+  {
+    "file": "cam_slicer/visualizer/preview.py",
+    "function": "preview_gcode",
+    "doc": "Preview G-code toolpath using matplotlib."
+  },
+  {
+    "file": "cam_slicer/visualizer/preview.py",
+    "function": "export_preview_image",
+    "doc": "Save a top-down preview image of a G-code file."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "_load_heightmap",
+    "doc": "Return list of points from iterable or file path."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "render_surface_and_toolpath",
+    "doc": "Overlay scanned surface and toolpath in a 3D plot."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "_load_shape_points",
+    "doc": "Return vertices from an STL or SVG file."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "_best_fit_transform",
+    "doc": "Simple ICP algorithm returning transform and transformed points."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "align_toolpath_to_surface",
+    "doc": "Align toolpath shape to scanned surface using ICP."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "simulate_motion_over_surface",
+    "doc": "Animate tool motion over the scanned surface."
+  },
+  {
+    "file": "cam_slicer/visualizer/surface_overlay.py",
+    "function": "analyze_toolpath_vs_surface",
+    "doc": "Return points where the tool collides or loses contact with the surface."
+  },
+  {
+    "file": "cam_slicer/config/machine_config.py",
+    "function": "get_machine_config",
+    "doc": "Return machine configuration for the given preset."
+  },
+  {
+    "file": "cam_slicer/config/macros.py",
+    "function": "get_macro",
+    "doc": "Return macro lines by name."
+  },
+  {
+    "file": "cam_slicer/utils/nesting.py",
+    "function": "bounding_box",
+    "doc": "Return width and height of an axis-aligned bounding box."
+  },
+  {
+    "file": "cam_slicer/utils/nesting.py",
+    "function": "nest_shapes",
+    "doc": "Pack closed shapes onto a sheet using a simple first-fit algorithm."
+  },
+  {
+    "file": "cam_slicer/utils/hybrid_operations.py",
+    "function": "assign_hybrid_operations",
+    "doc": "Assign operations and tool heads to vector paths."
+  },
+  {
+    "file": "cam_slicer/utils/system_report.py",
+    "function": "_has_tests",
+    "doc": ""
+  },
+  {
+    "file": "cam_slicer/utils/system_report.py",
+    "function": "_has_readme",
+    "doc": ""
+  },
+  {
+    "file": "cam_slicer/utils/system_report.py",
+    "function": "_extract_functions",
+    "doc": "Return mapping of function names to presence of docstring."
+  },
+  {
+    "file": "cam_slicer/utils/system_report.py",
+    "function": "generate_system_report",
+    "doc": "Scan project directories and create a Markdown report."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "_parse_move",
+    "doc": "Return coordinates and feedrate from a G-code move."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "optimize_toolpath_based_on_surface",
+    "doc": "Adjust feedrate based on surface height variations."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "_angle_between",
+    "doc": "Return angle in degrees between two vectors."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "_dist",
+    "doc": "2D distance helper."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "optimize_toolpath",
+    "doc": "Return toolpath segments with arcs for sharp turns and pruned air moves."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "optimize_toolpath_sequence",
+    "doc": "Reorder toolpath segments to reduce idle travel time."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "_circle_from_points",
+    "doc": "Return circle center, radius and orientation from three points."
+  },
+  {
+    "file": "cam_slicer/ai/optimizer.py",
+    "function": "smooth_toolpath_corners",
+    "doc": "Replace sharp corners with arc moves for smoother machining."
+  }
+]

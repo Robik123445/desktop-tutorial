@@ -1,0 +1,15 @@
+2025-07-13 13:13:48,660 INFO GeoFence initialized with 0 forbidden and 0 air-move zones
+2025-07-13 13:16:13,696 INFO GeoFence initialized with 0 forbidden and 0 air-move zones
+2025-07-13 13:18:06,086 INFO Wizard result: {'language': 'en', 'project': 'myproj', 'sample': None, 'profile': 'MACHINE_GRBL_SMALL'}
+2025-07-13 13:18:06,087 INFO Loaded machine preset: MACHINE_GRBL_SMALL
+2025-07-13 13:18:49,124 INFO GeoFence initialized with 0 forbidden and 0 air-move zones
+2025-07-13 13:18:52,567 INFO Loaded plugin adaptive_path
+2025-07-13 13:18:52,568 INFO Loaded plugin reverse_path
+2025-07-13 13:18:52,568 INFO Plugin loading complete: 2 loaded, 0 failed
+2025-07-13 13:18:52,568 INFO API server started and plugins loaded
+2025-07-13 13:19:16,622 INFO GET /
+2025-07-13 13:19:16,645 INFO GET /favicon.ico
+2025-07-13 13:19:23,046 INFO GET /docs
+2025-07-13 13:19:23,600 INFO GET /openapi.json
+2025-07-13 13:19:34,079 INFO GET /docs
+2025-07-13 13:19:34,592 INFO GET /openapi.json
