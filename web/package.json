@@ -16,6 +16,8 @@
     "jspdf": "^2.5.1",
     "@react-three/fiber": "^8.13.0",
     "@react-three/drei": "^9.56.4"
+    "@react-three/drei": "^9.56.4",
+    "lucide-react": "^0.367.0"
   },
   "devDependencies": {
     "@testing-library/react": "^14.0.0",
