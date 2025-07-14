@@ -1,12 +1,12 @@
 diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
-index 12f9aae39ef3868a66cd5a36c2d2d0d2f18f89fe..8bc11a51b3996eaaca35d73d571ce7229471bb8e 100644
+index 8bc11a51b3996eaaca35d73d571ce7229471bb8e..036410a8c03a43f81f782ba40c800dadf889462c 100644
 --- a/cam_slicer/api_server.py
 +++ b/cam_slicer/api_server.py
-@@ -1,28 +1,29 @@
+@@ -1,48 +1,48 @@
  from typing import List, Tuple, Optional
  from fastapi import FastAPI, HTTPException, Header, Depends, Request
  from fastapi.responses import PlainTextResponse
-+from pathlib import Path
+ from pathlib import Path
  from pydantic import BaseModel
  import os
  import logging
@@ -25,18 +25,38 @@ index 12f9aae39ef3868a66cd5a36c2d2d0d2f18f89fe..8bc11a51b3996eaaca35d73d571ce722
      trajectory_cleaner,
      surface_comparator,
  )
- from cam_slicer.sender import send_gcode_over_serial
+-from cam_slicer.sender import send_gcode_over_serial
++from cam_slicer.sender import send_gcode_over_serial, list_available_ports
  
  setup_logging()
  API_TOKEN = os.environ.get("API_TOKEN", "changeme")
  
  app = FastAPI(title="CAM Slicer API")
  
+ @app.middleware("http")
+ async def log_requests(request: Request, call_next):
+     logging.info("%s %s", request.method, request.url.path)
+     return await call_next(request)
+ 
+ def verify_token(x_access_token: str = Header(...)) -> str:
+     if x_access_token != API_TOKEN:
+         logging.warning("Unauthorized API access")
+         raise HTTPException(status_code=403, detail="Invalid token")
+     return x_access_token
+ 
+ 
+ class Toolpath(BaseModel):
+     points: List[Tuple[float, float, float]]
+ 
+ 
+ class PluginRunRequest(BaseModel):
+     toolpath: Optional[List[Tuple[float, float, float]]] = None
+     args: Optional[List[str]] = None
 diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
-index 12f9aae39ef3868a66cd5a36c2d2d0d2f18f89fe..8bc11a51b3996eaaca35d73d571ce7229471bb8e 100644
+index 8bc11a51b3996eaaca35d73d571ce7229471bb8e..036410a8c03a43f81f782ba40c800dadf889462c 100644
 --- a/cam_slicer/api_server.py
 +++ b/cam_slicer/api_server.py
-@@ -152,34 +153,47 @@ def stream_robotic(req: StreamRequest, token: str = Depends(verify_token)) -> di
+@@ -153,47 +153,58 @@ def stream_robotic(req: StreamRequest, token: str = Depends(verify_token)) -> di
          if req.profile
          else ArmKinematicProfile(name="basic")
      )
@@ -62,19 +82,30 @@ index 12f9aae39ef3868a66cd5a36c2d2d0d2f18f89fe..8bc11a51b3996eaaca35d73d571ce722
      return {"status": status, "log": log_output}
  
  
-+@app.get("/logs/central.log", response_class=PlainTextResponse)
-+def get_central_log(token: str = Depends(verify_token)) -> str:
-+    """Return contents of the main log file."""
-+    log_path = Path("logs/central.log")
-+    if not log_path.exists():
-+        raise HTTPException(status_code=404, detail="Log not found")
++@app.get("/ports")
++def list_ports(token: str = Depends(verify_token)) -> list[str]:
++    """Return available serial port names."""
++    logging.info("Listing serial ports")
 +    try:
-+        return log_path.read_text()
-+    except Exception as exc:  # pragma: no cover - file errors
-+        logging.error("Failed to read central log: %s", exc)
++        return list_available_ports()
++    except Exception as exc:  # pragma: no cover - runtime errors
++        logging.error("Failed to list ports: %s", exc)
 +        raise HTTPException(status_code=500, detail=str(exc))
 +
 +
+ @app.get("/logs/central.log", response_class=PlainTextResponse)
+ def get_central_log(token: str = Depends(verify_token)) -> str:
+     """Return contents of the main log file."""
+     log_path = Path("logs/central.log")
+     if not log_path.exists():
+         raise HTTPException(status_code=404, detail="Log not found")
+     try:
+         return log_path.read_text()
+     except Exception as exc:  # pragma: no cover - file errors
+         logging.error("Failed to read central log: %s", exc)
+         raise HTTPException(status_code=500, detail=str(exc))
+ 
+ 
  def create_app() -> FastAPI:
      """Return configured FastAPI application."""
      return app
