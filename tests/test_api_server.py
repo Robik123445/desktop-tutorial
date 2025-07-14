@@ -1,94 +1,44 @@
-from typing import List, Tuple, Optional
- from fastapi import FastAPI, HTTPException, Header, Depends, Request
-+from fastapi.responses import PlainTextResponse
- from pydantic import BaseModel
- import os
- import logging
- 
- from cam_slicer.logging_config import setup_logging
- from cam_slicer import (
-     load_plugins,
-     get_all_plugins,
-     get_plugin,
-     toolpath_to_gcode,
-     optimize_toolpath,
-     stream_robotic_toolpath,
-     ArmKinematicProfile,
-     optimize_robotic_trajectory,
-     execute_plugin,
- )
- 
- setup_logging()
- API_TOKEN = os.environ.get("API_TOKEN", "changeme")
- 
- app = FastAPI(title="CAM Slicer API")
- 
- @app.middleware("http")
- async def log_requests(request: Request, call_next):
-     logging.info("%s %s", request.method, request.url.path)
-diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
-index 18fb4ba0af18b08eb0aec95762cde839dae7ee77..f256fa4218523e5911cc24a603d867096a2f6fa4 100644
---- a/cam_slicer/api_server.py
-+++ b/cam_slicer/api_server.py
-@@ -64,55 +65,56 @@ def startup_event() -> None:
- @app.get("/plugins")
- def list_plugins(token: str = Depends(verify_token)) -> List[dict]:
-     """Return available plugins."""
-     return get_all_plugins()
+diff --git a/tests/test_api_server.py b/tests/test_api_server.py
+index 7f1599206a8ff0c8acdeb1c2eddc785dfd0f0ba1..553db604332cfcff8dc4d6722e7897951b536e50 100644
+--- a/tests/test_api_server.py
++++ b/tests/test_api_server.py
+@@ -53,25 +53,39 @@ def test_export_gcode():
+     assert any(line.startswith("G1") or line.startswith("grbl") for line in lines)
  
  
- @app.post("/plugins/{name}")
- def run_plugin(name: str, req: PluginRunRequest, token: str = Depends(verify_token)) -> List[Tuple[float, float, float]]:
-     """Run a plugin and return its result."""
-     plugin = get_plugin(name)
-     if not plugin:
-         raise HTTPException(status_code=404, detail="Plugin not found")
-     args = req.args or []
-     toolpath = req.toolpath
-     try:
-         if toolpath is not None:
-             result = execute_plugin(name, [toolpath])
-         else:
-             result = execute_plugin(name, args)
-     except Exception as exc:
-         logging.error("Plugin %s failed: %s", name, exc)
-         raise HTTPException(status_code=500, detail=str(exc))
-     return result
+ def test_optimize_toolpath_api():
+     """Optimize toolpath via API."""
+     payload = {"points": [[0, 0, 0], [1, 1, 0], [2, 1, 0]]}
+     resp = client.post("/optimize", json=payload, headers={"X-Access-Token": "testtoken"})
+     assert resp.status_code == 200
+     data = resp.json()
+     assert len(data) == len(payload["points"])
  
  
--@app.post("/export")
--def export_gcode(tp: Toolpath, token: str = Depends(verify_token)) -> List[str]:
--    """Convert a toolpath to G-code."""
--    gcode = toolpath_to_gcode(tp.points)
--    return gcode
-+@app.post("/export", response_class=PlainTextResponse)
-+def export_gcode(tp: Toolpath, token: str = Depends(verify_token)) -> str:
-+    """Convert a toolpath to G-code and return plain text."""
-+    logging.info("Export %d points to G-code", len(tp.points))
-+    lines = toolpath_to_gcode(tp.points)
-+    return "\n".join(lines)
- 
- 
- @app.post("/optimize")
- def optimize(tp: Toolpath, token: str = Depends(verify_token)) -> List[Tuple[float, float, float]]:
-     """Optimize a toolpath."""
-     return optimize_toolpath(tp.points)
- 
- 
- @app.post("/robot_optimize")
- def robot_optimize(req: TrajectoryRequest, token: str = Depends(verify_token)) -> dict:
-     """Optimize robotic trajectory and return suggestions."""
-     profile = (
-         ArmKinematicProfile(**req.profile)
-         if req.profile
-         else ArmKinematicProfile(name="basic")
-     )
-     optimized, warnings = optimize_robotic_trajectory(req.points, profile)
-     return {"points": optimized, "warnings": warnings}
- 
- 
- @app.post("/stream_robotic")
- def stream_robotic(req: StreamRequest, token: str = Depends(verify_token)) -> dict:
-     """Stream robotic toolpath to the machine."""
-     profile = (
-         ArmKinematicProfile(**req.profile)
+ def test_stream_robotic_error(monkeypatch):
+     """Streaming errors return HTTP 500."""
+     def fail(*a, **kw):
+         raise RuntimeError("port error")
+     monkeypatch.setattr("cam_slicer.api_server.stream_robotic_toolpath", fail)
+     payload = {
+         "points": [[0, 0, 0]],
+         "port": "COM1",
+         "baud": 115200,
+         "profile": {"name": "basic", "link_lengths": [], "joint_types": [], "joint_limits": []},
+     }
+     resp = client.post("/stream_robotic", json=payload, headers={"X-Access-Token": "testtoken"})
+     assert resp.status_code == 500
++
++
++def test_send_gcode(monkeypatch):
++    """Sending raw G-code over serial returns log output."""
++    def fake_send(gcode: str, port: str):
++        assert port == "COM1"
++        return "sent: G0 X0"
++
++    monkeypatch.setattr("cam_slicer.api_server.send_gcode_over_serial", fake_send)
++    payload = {"gcode": "G0 X0", "port": "COM1"}
++    resp = client.post("/send", json=payload, headers={"X-Access-Token": "testtoken"})
++    assert resp.status_code == 200
++    data = resp.json()
++    assert data["status"] == "ok" and "sent:" in data["log"]
