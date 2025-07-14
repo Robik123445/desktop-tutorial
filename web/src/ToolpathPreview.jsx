@@ -1,9 +1,4 @@
-diff --git a/web/src/ToolpathPreview.jsx b/web/src/ToolpathPreview.jsx
-index 413809c687cd32994549362c2e064b1383b0772e..c6e2aff43fe29e65c150ca1e1195de8d0b98d8e8 100644
---- a/web/src/ToolpathPreview.jsx
-+++ b/web/src/ToolpathPreview.jsx
-@@ -1,83 +1,82 @@
- import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
  import log from '../log';
  
  /**
