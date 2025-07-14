@@ -1,6 +1,11 @@
-from typing import List, Tuple, Optional
+diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
+index f256fa4218523e5911cc24a603d867096a2f6fa4..68c1bd190da4801f4901f2bfc981d8342fd8b8e8 100644
+--- a/cam_slicer/api_server.py
++++ b/cam_slicer/api_server.py
+@@ -1,83 +1,89 @@
+ from typing import List, Tuple, Optional
  from fastapi import FastAPI, HTTPException, Header, Depends, Request
-+from fastapi.responses import PlainTextResponse
+ from fastapi.responses import PlainTextResponse
  from pydantic import BaseModel
  import os
  import logging
@@ -17,6 +22,7 @@ from typing import List, Tuple, Optional
      optimize_robotic_trajectory,
      execute_plugin,
  )
++from cam_slicer.sender import send_gcode_over_serial
  
  setup_logging()
  API_TOKEN = os.environ.get("API_TOKEN", "changeme")
@@ -26,11 +32,47 @@ from typing import List, Tuple, Optional
  @app.middleware("http")
  async def log_requests(request: Request, call_next):
      logging.info("%s %s", request.method, request.url.path)
-diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
-index 18fb4ba0af18b08eb0aec95762cde839dae7ee77..f256fa4218523e5911cc24a603d867096a2f6fa4 100644
---- a/cam_slicer/api_server.py
-+++ b/cam_slicer/api_server.py
-@@ -64,55 +65,56 @@ def startup_event() -> None:
+     return await call_next(request)
+ 
+ def verify_token(x_access_token: str = Header(...)) -> str:
+     if x_access_token != API_TOKEN:
+         logging.warning("Unauthorized API access")
+         raise HTTPException(status_code=403, detail="Invalid token")
+     return x_access_token
+ 
+ 
+ class Toolpath(BaseModel):
+     points: List[Tuple[float, float, float]]
+ 
+ 
+ class PluginRunRequest(BaseModel):
+     toolpath: Optional[List[Tuple[float, float, float]]] = None
+     args: Optional[List[str]] = None
+ 
+ 
+ class StreamRequest(BaseModel):
+     points: List[Tuple[float, float, float]]
+     port: str
+     baud: int = 115200
+     profile: Optional[dict] = None
+ 
+ 
+ class TrajectoryRequest(BaseModel):
+     points: List[Tuple[float, float, float]]
+     profile: Optional[dict] = None
+ 
+ 
++class SendRequest(BaseModel):
++    gcode: str
++    port: str
++
++
+ @app.on_event("startup")
+ def startup_event() -> None:
+     load_plugins()
+     logging.info("API server started and plugins loaded")
+ 
+ 
  @app.get("/plugins")
  def list_plugins(token: str = Depends(verify_token)) -> List[dict]:
      """Return available plugins."""
@@ -50,34 +92,11 @@ index 18fb4ba0af18b08eb0aec95762cde839dae7ee77..f256fa4218523e5911cc24a603d86709
              result = execute_plugin(name, [toolpath])
          else:
              result = execute_plugin(name, args)
-     except Exception as exc:
-         logging.error("Plugin %s failed: %s", name, exc)
-         raise HTTPException(status_code=500, detail=str(exc))
-     return result
- 
- 
--@app.post("/export")
--def export_gcode(tp: Toolpath, token: str = Depends(verify_token)) -> List[str]:
--    """Convert a toolpath to G-code."""
--    gcode = toolpath_to_gcode(tp.points)
--    return gcode
-+@app.post("/export", response_class=PlainTextResponse)
-+def export_gcode(tp: Toolpath, token: str = Depends(verify_token)) -> str:
-+    """Convert a toolpath to G-code and return plain text."""
-+    logging.info("Export %d points to G-code", len(tp.points))
-+    lines = toolpath_to_gcode(tp.points)
-+    return "\n".join(lines)
- 
- 
- @app.post("/optimize")
- def optimize(tp: Toolpath, token: str = Depends(verify_token)) -> List[Tuple[float, float, float]]:
-     """Optimize a toolpath."""
-     return optimize_toolpath(tp.points)
- 
- 
- @app.post("/robot_optimize")
- def robot_optimize(req: TrajectoryRequest, token: str = Depends(verify_token)) -> dict:
-     """Optimize robotic trajectory and return suggestions."""
+diff --git a/cam_slicer/api_server.py b/cam_slicer/api_server.py
+index f256fa4218523e5911cc24a603d867096a2f6fa4..68c1bd190da4801f4901f2bfc981d8342fd8b8e8 100644
+--- a/cam_slicer/api_server.py
++++ b/cam_slicer/api_server.py
+@@ -107,34 +113,48 @@ def robot_optimize(req: TrajectoryRequest, token: str = Depends(verify_token)) -
      profile = (
          ArmKinematicProfile(**req.profile)
          if req.profile
@@ -92,3 +111,37 @@ index 18fb4ba0af18b08eb0aec95762cde839dae7ee77..f256fa4218523e5911cc24a603d86709
      """Stream robotic toolpath to the machine."""
      profile = (
          ArmKinematicProfile(**req.profile)
+         if req.profile
+         else ArmKinematicProfile(name="basic")
+     )
+     try:
+         stream_robotic_toolpath(req.points, profile, req.port, req.baud)
+     except Exception as exc:
+         logging.error("Streaming failed: %s", exc)
+         raise HTTPException(status_code=500, detail=str(exc))
+     return {"status": "ok"}
+ 
+ 
++@app.post("/send")
++def send_gcode(req: SendRequest, token: str = Depends(verify_token)) -> dict:
++    """Send G-code text over a serial port and return log output."""
++    logging.info("Sending G-code to %s", req.port)
++    try:
++        log_output = send_gcode_over_serial(req.gcode, req.port)
++        status = "ok"
++    except Exception as exc:  # pragma: no cover - runtime errors
++        logging.error("Serial send failed: %s", exc)
++        log_output = str(exc)
++        status = "error"
++    return {"status": status, "log": log_output}
++
++
+ def create_app() -> FastAPI:
+     """Return configured FastAPI application."""
+     return app
+ 
+ 
+ if __name__ == "__main__":  # pragma: no cover
+     import uvicorn
+ 
+     uvicorn.run(app, host="0.0.0.0", port=8000)
