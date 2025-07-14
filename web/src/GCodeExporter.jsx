@@ -1,43 +1,65 @@
--import React, { useState } from 'react';
-+import React, { useState, useEffect } from 'react';
+diff --git a/web/src/GCodeExporter.jsx b/web/src/GCodeExporter.jsx
+index 483ccda5a3dfb7d13917bcbe2b4bf4f304930ea5..6bb5a3f18e45f5c09aeb336882d11849b4ccd032 100644
+--- a/web/src/GCodeExporter.jsx
++++ b/web/src/GCodeExporter.jsx
+@@ -1,58 +1,65 @@
+ import React, { useState, useEffect } from 'react';
  
  /**
   * GCodeExporter converts a toolpath JSON to G-code and optionally sends it
   * to the selected controller. All actions are logged via `/log`.
   */
-+//------------------------------------------------------------------------------
-+// GCodeExporter component
-+//------------------------------------------------------------------------------
+ //------------------------------------------------------------------------------
+ // GCodeExporter component
+ //------------------------------------------------------------------------------
  export default function GCodeExporter() {
    const [toolpath, setToolpath] = useState('');
    const [filename, setFilename] = useState('');
    const [controller, setController] = useState('GRBL');
-+  const [ports, setPorts] = useState(['/dev/ttyUSB0', '/dev/ttyACM0']);
+   const [ports, setPorts] = useState(['/dev/ttyUSB0', '/dev/ttyACM0']);
    const [port, setPort] = useState('/dev/ttyUSB0');
    const [gcode, setGcode] = useState('');
    const [output, setOutput] = useState('');
    const [loading, setLoading] = useState(false);
    const [sending, setSending] = useState(false);
  
--  // Log helper
-+  // Fetch available serial ports once on mount. If it fails we keep defaults.
-+  useEffect(() => {
-+    fetch('/ports')
-+      .then((res) => res.json())
-+      .then((data) => {
-+        if (Array.isArray(data) && data.length) {
-+          setPorts(data);
-+          setPort(data[0]);
-+        }
-+      })
-+      .catch(() => {
-+        /* ignore errors, use defaults */
-+      });
-+  }, []);
-+
+-  // Fetch available serial ports once on mount. If it fails we keep defaults.
 +  /**
-+   * Send a message to /log asynchronously.
++   * Fetch list of serial ports from the backend. When it fails we keep
++   * the current list so the user can still select a default port.
 +   */
++  const fetchPorts = async () => {
++    try {
++      const res = await fetch('/ports');
++      const data = await res.json();
++      if (Array.isArray(data) && data.length) {
++        setPorts(data);
++        setPort(data[0]);
++      }
++    } catch {
++      // keep defaults on failure
++    }
++  };
++
++  // Fetch ports once on mount so the dropdown shows the latest devices.
+   useEffect(() => {
+-    fetch('/ports')
+-      .then((res) => res.json())
+-      .then((data) => {
+-        if (Array.isArray(data) && data.length) {
+-          setPorts(data);
+-          setPort(data[0]);
+-        }
+-      })
+-      .catch(() => {
+-        /* ignore errors, use defaults */
+-      });
++    fetchPorts();
+   }, []);
+ 
+   /**
+    * Send a message to /log asynchronously.
+    */
    const postLog = (message) =>
      fetch('/log', {
        method: 'POST',
@@ -45,78 +67,29 @@
        body: JSON.stringify({ message })
      }).catch(() => {});
  
--  // Request gcode generation
-+  /**
-+   * Convert the toolpath JSON to G-code by calling /export.
-+   */
+   /**
+    * Convert the toolpath JSON to G-code by calling /export.
+    */
    const generate = async () => {
      setLoading(true);
      postLog(`export ${controller}`);
      try {
-+      let pathData = [];
-+      try {
-+        pathData = JSON.parse(toolpath || '[]');
-+      } catch {
-+        setOutput('Invalid toolpath JSON');
-+        setLoading(false);
-+        return;
-+      }
-       const body = {
--        toolpath: JSON.parse(toolpath || '[]'),
-+        toolpath: pathData,
-         filename,
-         controller
-       };
-       const res = await fetch('/export', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify(body)
-       });
-       const data = await res.json();
-       setGcode(data.gcode || '');
-       setOutput(JSON.stringify(data, null, 2));
-     } catch (err) {
-       console.error('export failed', err);
-       setOutput('Failed to export');
-     } finally {
-       setLoading(false);
-     }
-   };
- 
--  // Send gcode to machine
-+  /**
-+   * Send generated G-code to the selected serial port via /send.
-+   */
-   const send = async () => {
-     if (!gcode) return;
-     setSending(true);
-     postLog(`send ${port}`);
-     try {
-       const res = await fetch('/send', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ gcode, port })
-       });
-       const data = await res.json();
-       setOutput(JSON.stringify(data, null, 2));
-     } catch (err) {
-       console.error('send failed', err);
-       setOutput('Failed to send');
-     } finally {
-       setSending(false);
-     }
-   };
- 
-   return (
-     <div className="bg-gray-900 text-gray-100 p-4 rounded space-y-2">
-       <h2 className="text-lg font-semibold">G-code Exporter</h2>
-       <textarea
-         className="bg-gray-800 p-2 w-full rounded text-sm font-mono"
+       let pathData = [];
+       try {
+         pathData = JSON.parse(toolpath || '[]');
+       } catch {
+         setOutput('Invalid toolpath JSON');
+         setLoading(false);
 diff --git a/web/src/GCodeExporter.jsx b/web/src/GCodeExporter.jsx
-index 709e6c659972dc3427248071bcbb8cacdae4e99c..483ccda5a3dfb7d13917bcbe2b4bf4f304930ea5 100644
+index 483ccda5a3dfb7d13917bcbe2b4bf4f304930ea5..6bb5a3f18e45f5c09aeb336882d11849b4ccd032 100644
 --- a/web/src/GCodeExporter.jsx
 +++ b/web/src/GCodeExporter.jsx
-@@ -87,45 +120,48 @@ export default function GCodeExporter() {
+@@ -115,53 +122,65 @@ export default function GCodeExporter() {
+       <input
+         type="text"
+         className="bg-gray-800 p-2 w-full rounded"
+         placeholder="File name"
+         value={filename}
          onChange={(e) => setFilename(e.target.value)}
        />
        <select
@@ -137,19 +110,40 @@ index 709e6c659972dc3427248071bcbb8cacdae4e99c..483ccda5a3dfb7d13917bcbe2b4bf4f3
        </button>
        {gcode && (
          <>
-           <select
-             className="bg-gray-800 p-2 w-full rounded"
-             value={port}
-             onChange={(e) => setPort(e.target.value)}
-           >
--            <option value="/dev/ttyUSB0">/dev/ttyUSB0</option>
--            <option value="/dev/ttyACM0">/dev/ttyACM0</option>
-+            {ports.map((p) => (
-+              <option key={p} value={p}>
-+                {p}
-+              </option>
-+            ))}
-           </select>
+-          <select
+-            className="bg-gray-800 p-2 w-full rounded"
+-            value={port}
+-            onChange={(e) => setPort(e.target.value)}
+-          >
+-            {ports.map((p) => (
+-              <option key={p} value={p}>
+-                {p}
+-              </option>
+-            ))}
+-          </select>
++          <div className="flex space-x-2">
++            <select
++              className="bg-gray-800 p-2 flex-1 rounded"
++              value={port}
++              onChange={(e) => setPort(e.target.value)}
++            >
++              {ports.map((p) => (
++                <option key={p} value={p}>
++                  {p}
++                </option>
++              ))}
++            </select>
++            <button
++              className="bg-gray-700 hover:bg-gray-600 text-white px-4 rounded"
++              onClick={() => {
++                postLog('refresh ports');
++                fetchPorts();
++              }}
++              type="button"
++            >
++              Refresh
++            </button>
++          </div>
            <button
              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded w-full"
              onClick={send}
