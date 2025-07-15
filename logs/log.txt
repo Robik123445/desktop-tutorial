@@ -1,0 +1,31 @@
++2025-07-15 11:36:16,739 INFO Active geofence reset
++2025-07-15 11:36:16,740 INFO Added 1 forbidden zones from AI
++2025-07-15 11:36:16,740 INFO Added 1 forbidden zones from AI
++2025-07-15 11:36:16,740 INFO Global geofence updated with 2 zones
++2025-07-15 11:36:16,741 INFO Base optimized to (0, 0) with cost 383.5
++2025-07-15 11:36:16,742 INFO Planned 2 zones
++2025-07-15 11:36:16,743 INFO Planned 3 zones
++2025-07-15 11:36:16,743 INFO Optimized into 3 zones
++2025-07-15 11:36:16,743 INFO GeoFence initialized with 1 forbidden and 0 air-move zones
++2025-07-15 11:36:16,744 INFO Planned 2 zones
++2025-07-15 11:36:16,744 WARNING Base path intersects forbidden zone at 1.0, 0.0
++2025-07-15 11:36:16,744 INFO Optimized into 2 zones
++2025-07-15 11:36:16,744 INFO GeoFence initialized with 1 forbidden and 0 air-move zones
++2025-07-15 11:36:16,745 WARNING AI could not find valid base position
++2025-07-15 11:36:16,745 INFO Planned 2 zones
++2025-07-15 11:36:16,745 INFO Optimized into 2 zones
++2025-07-15 11:36:16,746 INFO Preparing header/footer for grbl
++2025-07-15 11:36:16,746 INFO Loaded macro: START_SPINDLE
++2025-07-15 11:36:16,747 INFO Loaded macro: PAUSE
++2025-07-15 11:36:16,747 INFO Loaded 1 macros
++2025-07-15 11:36:16,747 INFO Preparing header/footer for grbl
++2025-07-15 11:36:16,747 INFO Loaded macro: END_SPINDLE
++2025-07-15 11:36:16,747 INFO Batch processed 2 toolpaths
++2025-07-15 11:36:16,748 INFO Coolant 'flood', 1 evacuation moves
++2025-07-15 11:36:16,760 INFO System report generated at report.txt
++2025-07-15 11:36:16,764 INFO Loaded plugin adaptive_path
++2025-07-15 11:36:16,764 INFO Loaded plugin reverse_path
++2025-07-15 11:36:16,764 INFO Plugin loading complete: 2 loaded, 0 failed
++2025-07-15 11:36:16,766 INFO Loaded plugin adaptive_path
++2025-07-15 11:36:16,766 INFO Loaded plugin reverse_path
++2025-07-15 11:36:16,766 INFO Plugin loading complete: 2 loaded, 0 failed
