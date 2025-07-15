@@ -1,9 +1,8 @@
 diff --git a/cam_slicer/__init__.py b/cam_slicer/__init__.py
-index 118a73205214097fed867e5ca55f79d44652b596..03ee3c9535b6f0ea8eb4e71798ef587568c16dc4 100644
+index 03ee3c9535b6f0ea8eb4e71798ef587568c16dc4..befd03be642ab551cf8f5d433874d02e8bb74fda 100644
 --- a/cam_slicer/__init__.py
 +++ b/cam_slicer/__init__.py
-@@ -169,50 +169,51 @@ from .robotics.pipeline import (
-     batch_convert,
+@@ -170,50 +170,51 @@ from .robotics.pipeline import (
      stream_converted_toolpath,
  )
  from .robotics.diagnostics import log_run, log_warning, log_error, log_feedback
@@ -28,7 +27,8 @@ index 118a73205214097fed867e5ca55f79d44652b596..03ee3c9535b6f0ea8eb4e71798ef5875
  from .robotics.safety import emergency_stop
  from .machines import Machine, MachineManager, Job
  from .user_manager import UserManager, User
-+from .toolpath_simulator import parse_toolpath, plot_toolpath, simulate_toolpath
+ from .toolpath_simulator import parse_toolpath, plot_toolpath, simulate_toolpath
++from .heightmap import HeightMap, apply_heightmap_to_gcode
  
  __all__ = [
      "_get_header_footer",
@@ -55,13 +55,10 @@ index 118a73205214097fed867e5ca55f79d44652b596..03ee3c9535b6f0ea8eb4e71798ef5875
      "axis_limits",
      "GeoFence",
 diff --git a/cam_slicer/__init__.py b/cam_slicer/__init__.py
-index 118a73205214097fed867e5ca55f79d44652b596..03ee3c9535b6f0ea8eb4e71798ef587568c16dc4 100644
+index 03ee3c9535b6f0ea8eb4e71798ef587568c16dc4..befd03be642ab551cf8f5d433874d02e8bb74fda 100644
 --- a/cam_slicer/__init__.py
 +++ b/cam_slicer/__init__.py
-@@ -342,26 +343,29 @@ __all__ = [
-     "generate_carving_paths",
-     "generate_zlevel_roughing_paths",
-     "generate_zlevel_finishing_paths",
+@@ -346,26 +347,28 @@ __all__ = [
      "generate_parallel_finishing_paths",
      "generate_offset_finishing_paths",
      "generate_high_polish_paths",
@@ -84,7 +81,9 @@ index 118a73205214097fed867e5ca55f79d44652b596..03ee3c9535b6f0ea8eb4e71798ef5875
      "feedrate_advisor",
      "trajectory_cleaner",
      "surface_comparator",
-+    "parse_toolpath",
-+    "plot_toolpath",
-+    "simulate_toolpath",
+     "parse_toolpath",
+     "plot_toolpath",
+     "simulate_toolpath",
++    "HeightMap",
++    "apply_heightmap_to_gcode",
  ]
