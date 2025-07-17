@@ -6,6 +6,7 @@ from cam_slicer.digital_twin import DigitalTwin
 
 
 def test_import_model_svg(tmp_path):
+    """Import SVG polyline and verify coordinates."""
     svg = tmp_path / "shape.svg"
     svg.write_text('<svg><polyline points="0,0 1,0 1,1"/></svg>')
     data = import_model(str(svg))
@@ -13,6 +14,7 @@ def test_import_model_svg(tmp_path):
 
 
 def test_import_model_dxf(tmp_path):
+    """Import DXF file using ezdxf."""
     ezdxf = pytest.importorskip("ezdxf")
     doc = ezdxf.new()
     doc.modelspace().add_line((0, 0), (1, 0))
@@ -23,6 +25,7 @@ def test_import_model_dxf(tmp_path):
 
 
 def test_import_model_stl(tmp_path):
+    """Import STL mesh using trimesh."""
     trimesh = pytest.importorskip("trimesh")
     mesh = trimesh.creation.box()
     stl = tmp_path / "mesh.stl"
@@ -32,11 +35,13 @@ def test_import_model_stl(tmp_path):
 
 
 def test_export_gcode_basic():
+    """Export simple linear toolpath to G-code."""
     gcode = export_gcode([(0, 0, 0), (1, 0, 0)])
     assert "G1" in gcode
 
 
 def test_apply_heightmap_to_gcode():
+    """Applies ZMap (heightmap) to raw G-code lines."""
     lines = ["G1 X0 Y0 Z0", "G1 X1 Y0 Z0"]
     zmap = ZMap(points=[(0, 0, 0.1), (1, 0, 0.2)])
     out = apply_heightmap_to_gcode(lines, zmap)
@@ -45,6 +50,7 @@ def test_apply_heightmap_to_gcode():
 
 
 def test_simulate_toolpath_heightmap():
+    """Simulate toolpath with DigitalTwin + heightmap."""
     twin = DigitalTwin(None)
     zmap = ZMap(points=[(0, 0, 1.0)])
     twin.simulate_toolpath([(0, 0, 0)], interval=0, heightmap=zmap)
@@ -52,6 +58,7 @@ def test_simulate_toolpath_heightmap():
 
 
 def test_integration_import_optimize_export(tmp_path):
+    """End-to-end test: import → optimize → export G-code."""
     svg = tmp_path / "shape.svg"
     svg.write_text('<svg><polyline points="0,0 1,0 2,0"/></svg>')
     data = import_model(str(svg))[0]
