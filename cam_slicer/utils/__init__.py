@@ -1,4 +1,4 @@
-from .zmap import ZMap
+from .zmap import ZMap, apply_heightmap_to_gcode
 from .nesting import nest_shapes, Placement
 from .system_report import generate_system_report
 from .geofence import GeoFence, get_active_geofence, reset_active_geofence
@@ -14,6 +14,7 @@ from .batch_processor import run_macro_sequence, batch_process_toolpaths
 
 __all__ = [
     "ZMap",
+    "apply_heightmap_to_gcode",
     "nest_shapes",
     "Placement",
     "generate_system_report",
