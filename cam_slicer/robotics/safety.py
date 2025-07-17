@@ -1,13 +1,18 @@
+"""Safety helpers for robotic workflows."""
 import logging
 from cam_slicer.logging_config import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
 
+
 def emergency_stop() -> None:
+    """Trigger an emergency stop and log the action."""
     logger.warning("Emergency stop activated")
     print("EMERGENCY STOP triggered!")
 
+
+# Default positional limits per axis used by safety checks (mm)
 DEFAULT_AXIS_RANGE = {
     "X": (-300.0, 300.0),
     "Y": (-300.0, 300.0),
@@ -17,8 +22,11 @@ DEFAULT_AXIS_RANGE = {
 HARD_CORNER_DEG = 150
 MAX_Z_DROP = 10.0
 
+
 def _angle_between(v1: tuple[float, float, float], v2: tuple[float, float, float]) -> float:
+    """Return angle in degrees between vectors."""
     import math
+
     dot = sum(a * b for a, b in zip(v1, v2))
     mag1 = math.sqrt(sum(a * a for a in v1))
     mag2 = math.sqrt(sum(b * b for b in v2))
@@ -26,6 +34,7 @@ def _angle_between(v1: tuple[float, float, float], v2: tuple[float, float, float
         return 0.0
     cos_t = max(-1.0, min(1.0, dot / (mag1 * mag2)))
     return math.degrees(math.acos(cos_t))
+
 
 def validate_toolpath(
     points: list[tuple[float, float, float]],
@@ -35,7 +44,12 @@ def validate_toolpath(
     max_feedrate: float | None = None,
     max_acceleration: float | None = None,
 ) -> list[str]:
+    """Validate coordinates and motion limits.
+
+    Returns warning strings and raises ``ValueError`` on serious issues."""
+
     import math
+
     axis_range = axis_range or DEFAULT_AXIS_RANGE
     warnings: list[str] = []
     prev_pt = None
