@@ -1,19 +1,20 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Optional, List, Any
 
 from cam_slicer.machines.machine import Machine
 
-logger = logging.getLogger(__name__)
-
 try:
-    from cam_slicer.ros_bridge import ROSBridge as _ROSBridge
+    from cam_slicer.machines.ros_bridge import ROSBridge as _ROSBridge
 except ImportError:
     _ROSBridge = None
 
+logger = logging.getLogger(__name__)
+
+
 class MachineManager:
-    def __init__(self):
+    def __init__(self) -> None:
         self.machines: Dict[str, Machine] = {}
 
     def add_machine(self, machine: Machine) -> None:
