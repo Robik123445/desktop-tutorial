@@ -1,9 +1,8 @@
-import sys
-import os
+import os, sys
 import pytest
-from pathlib import Path
 
 sys.path.insert(0, os.path.abspath("."))
+
 pytest.importorskip("fastapi")
 pytest.importorskip("httpx")
 from fastapi.testclient import TestClient
@@ -74,7 +73,7 @@ def test_robot_optimize():
 def test_robot_optimize_invalid_profile():
     resp = client.post(
         "/robot_optimize",
-        json={"points": [[0,0,0]], "profile": "bad"},
+        json={"points": [[0, 0, 0]], "profile": "bad"},
         headers={"X-Access-Token": "testtoken"},
     )
     assert resp.status_code == 422
@@ -109,16 +108,16 @@ def test_optimize_toolpath_api():
 
 
 def test_optimize_unknown_analyzer():
-    resp = client.post("/optimize", json={"analyzer": "bad", "points": [[0,0,0]]}, headers={"X-Access-Token": "testtoken"})
+    resp = client.post("/optimize", json={"analyzer": "bad", "points": [[0, 0, 0]]}, headers={"X-Access-Token": "testtoken"})
     assert resp.status_code == 400
 
 
 def test_stream_robotic_success(monkeypatch):
     """Streaming returns status ok."""
-    def nop(*a, **kw):
-        return None
+    def nop(*a, **kw): return None
+
     monkeypatch.setattr("cam_slicer.api_server.stream_robotic_toolpath", nop)
-    payload = {"points": [[0,0,0]], "port": "COM1", "baud": 115200, "profile": {"name": "basic"}}
+    payload = {"points": [[0, 0, 0]], "port": "COM1", "baud": 115200, "profile": {"name": "basic"}}
     resp = client.post("/stream_robotic", json=payload, headers={"X-Access-Token": "testtoken"})
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
@@ -126,8 +125,8 @@ def test_stream_robotic_success(monkeypatch):
 
 def test_stream_robotic_error(monkeypatch):
     """Streaming errors return HTTP 500."""
-    def fail(*a, **kw):
-        raise RuntimeError("port error")
+    def fail(*a, **kw): raise RuntimeError("port error")
+
     monkeypatch.setattr("cam_slicer.api_server.stream_robotic_toolpath", fail)
     payload = {
         "points": [[0, 0, 0]],
@@ -156,6 +155,7 @@ def test_send_gcode(monkeypatch):
 def test_send_gcode_error(monkeypatch):
     def fail(gcode: str, port: str):
         raise RuntimeError("oops")
+
     monkeypatch.setattr("cam_slicer.api_server.send_gcode_over_serial", fail)
     payload = {"gcode": "G0 X0", "port": "COM1"}
     resp = client.post("/send", json=payload, headers={"X-Access-Token": "testtoken"})
@@ -173,10 +173,12 @@ def test_get_central_log():
 def test_get_central_log_missing(monkeypatch):
     from pathlib import Path
     orig_exists = Path.exists
+
     def fake_exists(self):
         if self.as_posix().endswith("logs/central.log"):
             return False
         return orig_exists(self)
+
     monkeypatch.setattr(Path, "exists", fake_exists)
     resp = client.get("/logs/central.log", headers={"X-Access-Token": "testtoken"})
     assert resp.status_code == 404
@@ -196,15 +198,14 @@ def test_list_serial_ports(monkeypatch):
 def test_ports_failure(monkeypatch):
     def fail():
         raise RuntimeError("fail")
+
     monkeypatch.setattr("cam_slicer.api_server.list_available_ports", fail)
     resp = client.get("/ports", headers={"X-Access-Token": "testtoken"})
     assert resp.status_code == 500
 
-# ------------------------- NOVÝ TEST NA PROBE HEIGHTMAP -------------------------
 
 def test_probe_heightmap_endpoint(monkeypatch):
     from cam_slicer.api_server import app
-    from cam_slicer.utils.zmap import ZMap
     client = TestClient(app)
 
     def fake_probe(*args, **kwargs):
