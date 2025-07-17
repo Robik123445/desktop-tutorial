@@ -29,4 +29,3 @@ __all__ = [
     "send_gcode_over_serial",
     "list_available_ports",
 ]
-
