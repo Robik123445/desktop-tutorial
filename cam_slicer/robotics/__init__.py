@@ -20,6 +20,7 @@ from .kinematics import (
     plan_feedrate_with_lookahead,
     axis_limits,
 )
+from .ros_moveit import toolpath_to_trajectory, send_joint_trajectory
 from .safety import emergency_stop
 from .sensor_stream import SensorStream
 from .live_feedback_engine import LiveFeedbackEngine
@@ -63,4 +64,6 @@ __all__ = [
     "map_operations",
     "map_singularity_zones",
     "start_live_diagnostics",
+    "toolpath_to_trajectory",
+    "send_joint_trajectory",
 ]
