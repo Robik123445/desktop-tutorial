@@ -1,3 +1,10 @@
+"""G-code export utilities.
+
+This module converts toolpath coordinates into G-code. It relies on
+:func:`~cam_slicer.robotics.kinematics.transform_point` and related helpers.
+Usage is demonstrated at the bottom of the file.
+"""
+
 from __future__ import annotations
 
 import logging
@@ -22,6 +29,7 @@ setup_logging()
 
 
 def _transform_pt(args: tuple[tuple[float, ...], TransformConfig]):
+    """Helper for parallel coordinate transformation."""
     p, cfg = args
     return transform_point(*p[:3], cfg)
 
@@ -29,6 +37,7 @@ def _transform_pt(args: tuple[tuple[float, ...], TransformConfig]):
 def _arc_command(start: tuple[float, float, float],
                  center: tuple[float, float, float],
                  end: tuple[float, float, float]) -> str:
+    """Create GRBL G2/G3 command from three points."""
     sx, sy, _ = start
     cx, cy, _ = center
     ex, ey, _ = end
@@ -65,6 +74,18 @@ def toolpath_to_gcode(
     axis_range: dict[str, tuple[float, float]] | None = None,
     max_feedrate: float | None = None,
 ) -> list[str]:
+    """Convert a toolpath sequence into G-code.
+
+    Parameters
+    ----------
+    laser_power : float, optional
+        If provided, enable laser mode and set power via ``M3 S<power>`` / ``M5``
+        commands.
+    axis_range : dict, optional
+        Allowed ``(min, max)`` limits for each axis.
+    max_feedrate : float, optional
+        Raise ``ValueError`` when ``feedrate`` exceeds this value.
+    """
     header, footer = _get_header_footer(controller_config)
     gcode_lines = [header]
     if start_macro:
@@ -177,7 +198,6 @@ def toolpath_to_gcode(
                 if adaptive_mode and z_map is not None:
                     offset = z_map.get_offset(x, y)
                     scale = max(0.5, 1.0 - abs(offset) * 0.1)
-                    base_fr *= scale
                     logging.info("Adaptive mode: offset %.3f scales feed %.3f", offset, base_fr)
                 adj_fr = apply_pressure_advance(base_fr, 500.0, advance_factor)
                 logging.info("Pressure advance: %.3f -> %.3f", base_fr, adj_fr)
@@ -217,7 +237,8 @@ def toolpath_to_gcode(
     return gcode_lines
 
 
-if __name__ == "__main__":
+# Example usage
+if __name__ == "__main__":  # pragma: no cover
     tp = [(0, 0, 0), (10, 0, 0)]
     cfg = ControllerConfig(CONTROLLER_TYPE="grbl")
     lines = toolpath_to_gcode(tp, cfg)
