@@ -8,7 +8,6 @@ from typing import List, Tuple, Sequence
 from cam_slicer.logging_config import setup_logging
 setup_logging()
 
-
 @dataclass
 class ZMap:
     """Store a grid of Z offsets and provide interpolation."""
