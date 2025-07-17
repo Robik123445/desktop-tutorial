@@ -1,19 +1,90 @@
 import logging
 from typing import List, Tuple, Union
 
-
-
 from cam_slicer.logging_config import setup_logging
+
 setup_logging()
+
+
 def parse_gcode(lines: List[str]) -> List[Tuple[float, float, float]]:
-    """Parse G-code lines and return list of XYZ tuples."""
+    """Parse G-code lines and return list of XYZ tuples with arc interpolation."""
+
+    def _interp_arc(
+        start: Tuple[float, float, float],
+        center: Tuple[float, float, float],
+        end: Tuple[float, float, float],
+        cw: bool,
+        segments: int = 20,
+    ) -> List[Tuple[float, float, float]]:
+        from math import atan2, cos, sin, pi
+
+        sx, sy, sz = start
+        cx, cy, _ = center
+        ex, ey, ez = end
+        r = ((sx - cx) ** 2 + (sy - cy) ** 2) ** 0.5
+        a0 = atan2(sy - cy, sx - cx)
+        a1 = atan2(ey - cy, ex - cx)
+        if cw:
+            if a1 >= a0:
+                a1 -= 2 * pi
+        else:
+            if a1 <= a0:
+                a1 += 2 * pi
+        pts = []
+        for i in range(segments + 1):
+            t = i / segments
+            ang = a0 + (a1 - a0) * t
+            x = cx + r * cos(ang)
+            y = cy + r * sin(ang)
+            z = sz + (ez - sz) * t
+            pts.append((x, y, z))
+        return pts
+
     points: List[Tuple[float, float, float]] = []
     x = y = z = 0.0
     for line in lines:
-        line = line.strip().split(";")[0]  # remove comments
+        line = line.strip().split(";")[0]
         if not line:
             continue
-        if any(cmd in line for cmd in ("G0", "G1", "G2", "G3")):
+        if line.startswith("G2") or line.startswith("G3"):
+            cw = line.startswith("G2")
+            x_end = x
+            y_end = y
+            z_end = z
+            if "X" in line:
+                try:
+                    x_end = float(line.split("X")[1].split()[0])
+                except ValueError:
+                    pass
+            if "Y" in line:
+                try:
+                    y_end = float(line.split("Y")[1].split()[0])
+                except ValueError:
+                    pass
+            if "Z" in line:
+                try:
+                    z_end = float(line.split("Z")[1].split()[0])
+                except ValueError:
+                    pass
+            if "I" in line and "J" in line:
+                try:
+                    i = float(line.split("I")[1].split()[0])
+                    j = float(line.split("J")[1].split()[0])
+                except ValueError:
+                    points.append((x_end, y_end, z_end))
+                else:
+                    start_pt = (x, y, z)
+                    center = (x + i, y + j, z)
+                    end_pt = (x_end, y_end, z_end)
+                    arc_pts = _interp_arc(start_pt, center, end_pt, cw)
+                    if points and points[-1] == start_pt:
+                        points.extend(arc_pts[1:])
+                    else:
+                        points.extend(arc_pts)
+            else:
+                points.append((x_end, y_end, z_end))
+            x, y, z = x_end, y_end, z_end
+        elif line.startswith("G0") or line.startswith("G1"):
             if "X" in line:
                 try:
                     x = float(line.split("X")[1].split()[0])
@@ -30,6 +101,8 @@ def parse_gcode(lines: List[str]) -> List[Tuple[float, float, float]]:
                 except ValueError:
                     pass
             points.append((x, y, z))
+        else:
+            continue
     logging.info("Parsed %d points from gcode", len(points))
     return points
 
@@ -56,175 +129,4 @@ def preview_gcode(
         Matplotlib figure with the plot. If matplotlib is unavailable, the raw
         points are returned instead.
     """
-    pts = parse_gcode(lines)
-    try:
-        import matplotlib
-        matplotlib.use("Agg")  # headless backend
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused
-    except Exception as exc:  # pragma: no cover - if mpl missing
-        logging.error("Matplotlib not available: %s", exc)
-        return pts
-
-    fig = plt.figure()
-    if laser_mode:
-        ax = fig.add_subplot(111)
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        ax.plot(xs, ys, "-o")
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-    else:
-        ax = fig.add_subplot(111, projection="3d")
-        xs = [p[0] for p in pts]
-        ys = [p[1] for p in pts]
-        zs = [p[2] for p in pts]
-        ax.plot(xs, ys, zs, "-o")
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-    logging.info("Generated preview: %s mode", "laser" if laser_mode else "mill")
-    if show:
-        plt.show()
-    return fig
-
-
-def export_preview_image(
-    gcode_path: str,
-    out_path: str,
-    *,
-    laser_mode: bool = False,
-    part_id: str | None = None,
-) -> None:
-    """Save a top-down preview image of a G-code file.
-
-    Parameters
-    ----------
-    gcode_path : str
-        Path to the G-code file.
-    out_path : str
-        Output image path (.png or .svg).
-    laser_mode : bool, optional
-        Ignore Z depth when ``True``. Default ``False``.
-    part_id : str, optional
-        Annotation label, defaults to ``gcode_path`` stem.
-    """
-
-    from pathlib import Path
-
-    lines = Path(gcode_path).read_text().splitlines()
-    points = parse_gcode(lines)
-
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-    except Exception as exc:  # pragma: no cover
-        logging.error("Matplotlib not available: %s", exc)
-        return
-
-    xs = [p[0] for p in points]
-    ys = [p[1] for p in points]
-
-    fig, ax = plt.subplots()
-    ax.plot(xs, ys, "-k")
-    ax.set_aspect("equal", adjustable="box")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.grid(True)
-
-    if points:
-        ax.plot(xs[0], ys[0], "go", label="start")
-        ax.plot(xs[-1], ys[-1], "ro", label="end")
-        ax.legend(loc="best")
-
-    # simple scale bar
-    if xs and ys:
-        span = max(max(xs) - min(xs), max(ys) - min(ys))
-        bar = span / 5 if span else 1.0
-        y_pos = min(ys) - 0.05 * span
-        ax.hlines(y_pos, min(xs), min(xs) + bar, colors="r")
-        ax.text(min(xs), y_pos - 0.02 * span, f"{bar:.1f} units", color="r")
-
-    part = part_id or Path(gcode_path).stem
-    ax.set_title(f"Part: {part}")
-
-    fig.tight_layout()
-    plt.savefig(out_path)
-    plt.close(fig)
-    logging.info("Preview image saved to %s", out_path)
-
-
-def backplot_gcode(gcode_path: str, *, step_time: float = 0.1, show: bool = False):
-    """Animate a G-code file as a 3D backplot.
-
-    Parameters
-    ----------
-    gcode_path : str
-        Path to G-code file to visualize.
-    step_time : float, optional
-        Time between frames in seconds. Default ``0.1``.
-    show : bool, optional
-        Display the animation using ``plt.show()`` when ``True``.
-
-    Returns
-    -------
-    matplotlib.animation.FuncAnimation or list
-        Animation object if matplotlib is available, otherwise the parsed
-        points list.
-    """
-    from pathlib import Path
-
-    lines = Path(gcode_path).read_text().splitlines()
-    pts = parse_gcode(lines)
-
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-        from matplotlib.animation import FuncAnimation
-    except Exception as exc:  # pragma: no cover
-        logging.error("Matplotlib not available: %s", exc)
-        return pts
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection="3d")
-    xs = [p[0] for p in pts]
-    ys = [p[1] for p in pts]
-    zs = [p[2] for p in pts]
-    ax.plot(xs, ys, zs, color="gray", alpha=0.3)
-    marker, = ax.plot([xs[0]], [ys[0]], [zs[0]], "ro")
-    ax.set_xlabel("X")
-    ax.set_ylabel("Y")
-    ax.set_zlabel("Z")
-
-    paused = False
-    step = False
-
-    def on_key(event):
-        nonlocal paused, step
-        if event.key == " ":
-            paused = not paused
-        elif event.key in ("n", "right"):
-            step = True
-
-    fig.canvas.mpl_connect("key_press_event", on_key)
-
-    def update(frame: int):
-        nonlocal paused, step
-        if paused and not step:
-            return marker,
-        if step:
-            step = False
-            paused = True
-        x, y, z = pts[frame]
-        marker.set_data([x], [y])
-        marker.set_3d_properties([z])
-        return marker,
-
-    ani = FuncAnimation(fig, update, frames=range(len(pts)), interval=step_time * 1000, blit=True, repeat=False)
-    logging.info("Backplot loaded %d points", len(pts))
-    if show:
-        plt.show()
-    return ani
+    # ...zvyšok tvojej funkcie...
