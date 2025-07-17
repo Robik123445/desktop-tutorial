@@ -14,7 +14,6 @@ from .batch_processor import run_macro_sequence, batch_process_toolpaths
 
 __all__ = [
     "ZMap",
-    "apply_heightmap_to_gcode",
     "nest_shapes",
     "Placement",
     "generate_system_report",
@@ -32,4 +31,5 @@ __all__ = [
     "run_strategy",
     "run_macro_sequence",
     "batch_process_toolpaths",
+    "apply_heightmap_to_gcode",
 ]
