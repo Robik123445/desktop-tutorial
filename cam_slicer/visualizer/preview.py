@@ -2,9 +2,7 @@ import logging
 from typing import List, Tuple, Union
 
 from cam_slicer.logging_config import setup_logging
-
 setup_logging()
-
 
 def parse_gcode(lines: List[str]) -> List[Tuple[float, float, float]]:
     """Parse G-code lines and return list of XYZ tuples with arc interpolation."""
@@ -129,4 +127,4 @@ def preview_gcode(
         Matplotlib figure with the plot. If matplotlib is unavailable, the raw
         points are returned instead.
     """
-    # ...zvyšok tvojej funkcie...
+    # ... (ostatok funkcie nezmenený, tu môžeš dorobiť zvyšok podľa potreby)
