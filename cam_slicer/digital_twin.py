@@ -6,6 +6,7 @@ import logging
 import threading
 import time
 import json
+from pathlib import Path
 from typing import Callable, List, Tuple, Optional, Dict, Any
 
 from cam_slicer.utils import ZMap
@@ -13,6 +14,8 @@ from cam_slicer.robotics.safety import validate_toolpath, DEFAULT_AXIS_RANGE
 
 from cam_slicer.logging_config import setup_logging
 setup_logging()
+
+
 def _parse_status(line: str) -> Dict[str, Any]:
     """Parse a status line from the controller.
 
@@ -34,15 +37,114 @@ def _parse_status(line: str) -> Dict[str, Any]:
     """
     status: Dict[str, Any] = {}
     for token in line.strip().split():
-        # ... (zvyšok funkcie ostáva nezmenený)
-        pass
+        key = token[0].upper()
+        val = token[1:]
+        if not val:
+            continue
+        try:
+            num = float(val)
+        except ValueError:
+            continue
+        if key == "X":
+            status["x"] = num
+        elif key == "Y":
+            status["y"] = num
+        elif key == "Z":
+            status["z"] = num
+        elif key == "F":
+            status["feed"] = num
+        elif key == "T":
+            status["tool"] = int(num)
+        elif key == "A":
+            status["alarm"] = int(num)
+    return status
+
 
 class DigitalTwin:
-    # ... __init__ a ostatné metódy ...
+    """Monitor machine state and provide basic simulation."""
+
+    def __init__(self, connection: Any | None) -> None:
+        """Create a new digital twin.
+
+        Parameters
+        ----------
+        connection : object or None
+            Object with ``readline`` method used for live monitoring. When
+            ``None`` the instance can still simulate toolpaths.
+        """
+
+        self.connection = connection
+        self.state: Dict[str, Any] = {"x": 0.0, "y": 0.0, "z": 0.0}
+        self.history: List[Dict[str, Any]] = []
+        self._listeners: List[Callable[[Dict[str, Any]], None]] = []
+        self._thread: threading.Thread | None = None
+        self._running = False
+        self.logger = logging.getLogger(__name__)
 
     def get_live_state(self) -> Dict[str, Any]:
         """Return a copy of the latest machine status."""
         return self.state.copy()
+
+    # ------------------------------------------------------------------
+    # Monitoring utilities
+
+    def add_listener(self, cb: Callable[[Dict[str, Any]], None]) -> None:
+        """Register callback invoked with every state update."""
+
+        self._listeners.append(cb)
+
+    def remove_listener(self, cb: Callable[[Dict[str, Any]], None]) -> None:
+        """Remove a previously registered callback."""
+
+        if cb in self._listeners:
+            self._listeners.remove(cb)
+
+    def _monitor(self) -> None:
+        """Internal thread function reading lines from ``connection``."""
+
+        while self._running:
+            if not self.connection:
+                time.sleep(0.01)
+                continue
+            try:
+                line = self.connection.readline()
+            except Exception as exc:
+                self.logger.error("Read error: %s", exc)
+                time.sleep(0.1)
+                continue
+            if not line:
+                time.sleep(0.01)
+                continue
+            if isinstance(line, bytes):
+                line = line.decode(errors="ignore")
+            status = _parse_status(str(line))
+            if status:
+                self.state.update(status)
+                self.history.append(self.state.copy())
+                for cb in list(self._listeners):
+                    try:
+                        cb(self.state)
+                    except Exception as exc:
+                        self.logger.error("Listener failed: %s", exc)
+
+    def start_monitoring(self) -> None:
+        """Begin reading status lines in a background thread."""
+
+        if self._running:
+            return
+        self._running = True
+        self._thread = threading.Thread(target=self._monitor, daemon=True)
+        self._thread.start()
+        self.logger.info("Monitoring started")
+
+    def stop_monitoring(self) -> None:
+        """Stop background monitoring."""
+
+        self._running = False
+        if self._thread:
+            self._thread.join(timeout=1.0)
+            self._thread = None
+        self.logger.info("Monitoring stopped")
 
     def simulate_toolpath(
         self,
@@ -69,52 +171,7 @@ class DigitalTwin:
             When ``True`` display a 3D preview, otherwise a 2D plot.
         axis_range : dict, optional
             Allowed coordinate range per axis.
-        max_feedrate : float, optional
-            Raise ``ValueError`` if exceeded.
-        max_acceleration : float, optional
-            Acceleration limit for safety checks.
-
-        Returns
-        -------
-        matplotlib.figure.Figure or list or None
-            The preview figure when matplotlib is available. If not,
-            the processed point list is returned instead.
         """
-
-        warnings = validate_toolpath(
-            toolpath,
-            axis_range=axis_range or DEFAULT_AXIS_RANGE,
-            max_feedrate=max_feedrate,
-            max_acceleration=max_acceleration,
-        )
-        if warnings:
-            logging.warning("Simulation warnings: %s", "; ".join(warnings))
-
-        preview_points: List[Tuple[float, float, float]] = []
-        for pt in toolpath:
-            x, y, z = pt
-            if heightmap is not None:
-                z += heightmap.get_offset(x, y)
-            self.state.update({"x": x, "y": y, "z": z})
-            self.history.append(self.state.copy())
-            preview_points.append((x, y, z))
-            for cb in list(self._listeners):
-                try:
-                    cb(self.state)
-                except Exception as exc:  # pragma: no cover - log only
-                    logging.error("Listener failed: %s", exc)
-            time.sleep(interval)
-
-        logging.info("Simulated %d toolpath points", len(toolpath))
-
-        try:
-            import matplotlib
-            matplotlib.use("Agg")
-            import matplotlib.pyplot as plt
-            from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-        except Exception as exc:  # pragma: no cover - if matplotlib missing
-            logging.error("Matplotlib not available: %s", exc)
-            return preview_points
 
         xs = [p[0] for p in preview_points]
         ys = [p[1] for p in preview_points]
@@ -140,4 +197,63 @@ class DigitalTwin:
 
         return fig
 
-    # ... zvyšok triedy ...
+    def log_status(self, path: str | Path) -> None:
+        """Write captured states to ``path`` as JSON lines."""
+
+        data = [self.state] if not self.history else self.history
+        with Path(path).open("w", encoding="utf-8") as fh:
+            for entry in data:
+                fh.write(json.dumps(entry) + "\n")
+        self.logger.info("Logged %d states to %s", len(data), path)
+
+    def compare_with_planned(
+        self, planned: List[Tuple[float, float, float]], *, tolerance: float = 0.1
+    ) -> List[int]:
+        """Return indices of points deviating from ``planned`` by ``tolerance``."""
+
+        deviations: List[int] = []
+        for idx, target in enumerate(planned):
+            if idx >= len(self.history):
+                deviations.append(idx)
+                continue
+            actual = self.history[idx]
+            if any(
+                abs(actual.get(ax) - tgt) > tolerance
+                for ax, tgt in zip(("x", "y", "z"), target)
+            ):
+                deviations.append(idx)
+        return deviations
+
+
+class WorkshopTwin:
+    """Manage multiple :class:`DigitalTwin` instances."""
+
+    def __init__(self) -> None:
+        self.twins: Dict[str, DigitalTwin] = {}
+        self._listeners: List[Callable[[str, Dict[str, Any]], None]] = []
+
+    def add_machine(self, name: str, connection: Any | None) -> None:
+        twin = DigitalTwin(connection)
+        twin.add_listener(lambda state, n=name: self._notify(n, state))
+        self.twins[name] = twin
+
+    def _notify(self, name: str, state: Dict[str, Any]) -> None:
+        for cb in list(self._listeners):
+            try:
+                cb(name, state)
+            except Exception as exc:
+                logging.error("Workshop listener failed: %s", exc)
+
+    def add_listener(self, cb: Callable[[str, Dict[str, Any]], None]) -> None:
+        self._listeners.append(cb)
+
+    def start_all(self) -> None:
+        for twin in self.twins.values():
+            twin.start_monitoring()
+
+    def stop_all(self) -> None:
+        for twin in self.twins.values():
+            twin.stop_monitoring()
+
+    def get_states(self) -> Dict[str, Dict[str, Any]]:
+        return {name: twin.get_live_state() for name, twin in self.twins.items()}
