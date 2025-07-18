@@ -1,26 +1,4 @@
-def preview_gcode(
-    lines: List[str],
-    laser_mode: bool = False,
-    show: bool = False,
-) -> Union["matplotlib.figure.Figure", List[Tuple[float, float, float]]]:
-    """Preview G-code toolpath using matplotlib.
-
-    Parameters
-    ----------
-    lines : list of str
-        G-code commands to visualize.
-    laser_mode : bool, optional
-        If True, ignore Z depth and draw a flat 2D path.
-    show : bool, optional
-        Call ``plt.show()`` to display the figure. Default False.
-
-    Returns
-    -------
-    matplotlib.figure.Figure or list
-        Matplotlib figure with the plot. If matplotlib is unavailable, the raw
-        points are returned instead.
-    """
-    points = parse_gcode(lines)
+points = parse_gcode(lines)
     if laser_mode:
         points = [(x, y, 0.0) for x, y, _ in points]
 
@@ -29,7 +7,7 @@ def preview_gcode(
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
         from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover - optional dep
         logging.error("Matplotlib not available: %s", exc)
         return points
 
