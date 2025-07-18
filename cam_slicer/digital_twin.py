@@ -59,7 +59,6 @@ def _parse_status(line: str) -> Dict[str, Any]:
             status["alarm"] = int(num)
     return status
 
-
 class DigitalTwin:
     """Monitor machine state and provide basic simulation."""
 
@@ -90,25 +89,22 @@ class DigitalTwin:
 
     def add_listener(self, cb: Callable[[Dict[str, Any]], None]) -> None:
         """Register callback invoked with every state update."""
-
         self._listeners.append(cb)
 
     def remove_listener(self, cb: Callable[[Dict[str, Any]], None]) -> None:
         """Remove a previously registered callback."""
-
         if cb in self._listeners:
             self._listeners.remove(cb)
 
     def _monitor(self) -> None:
         """Internal thread function reading lines from ``connection``."""
-
         while self._running:
             if not self.connection:
                 time.sleep(0.01)
                 continue
             try:
                 line = self.connection.readline()
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover - runtime errors
                 self.logger.error("Read error: %s", exc)
                 time.sleep(0.1)
                 continue
@@ -124,12 +120,11 @@ class DigitalTwin:
                 for cb in list(self._listeners):
                     try:
                         cb(self.state)
-                    except Exception as exc:
+                    except Exception as exc:  # pragma: no cover - log only
                         self.logger.error("Listener failed: %s", exc)
 
     def start_monitoring(self) -> None:
         """Begin reading status lines in a background thread."""
-
         if self._running:
             return
         self._running = True
@@ -139,7 +134,6 @@ class DigitalTwin:
 
     def stop_monitoring(self) -> None:
         """Stop background monitoring."""
-
         self._running = False
         if self._thread:
             self._thread.join(timeout=1.0)
@@ -172,6 +166,22 @@ class DigitalTwin:
         axis_range : dict, optional
             Allowed coordinate range per axis.
         """
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+            from mpl_toolkits.mplot3d import Axes3D  # noqa: F401
+        except Exception as exc:  # pragma: no cover - optional dep
+            self.logger.warning("matplotlib not available: %s", exc)
+            return toolpath
+
+        preview_points = []
+        for p in toolpath:
+            x, y, z = p
+            if heightmap:
+                z += heightmap.get_offset(x, y)
+            preview_points.append((x, y, z))
+            time.sleep(interval)
 
         xs = [p[0] for p in preview_points]
         ys = [p[1] for p in preview_points]
@@ -199,7 +209,6 @@ class DigitalTwin:
 
     def log_status(self, path: str | Path) -> None:
         """Write captured states to ``path`` as JSON lines."""
-
         data = [self.state] if not self.history else self.history
         with Path(path).open("w", encoding="utf-8") as fh:
             for entry in data:
@@ -210,7 +219,6 @@ class DigitalTwin:
         self, planned: List[Tuple[float, float, float]], *, tolerance: float = 0.1
     ) -> List[int]:
         """Return indices of points deviating from ``planned`` by ``tolerance``."""
-
         deviations: List[int] = []
         for idx, target in enumerate(planned):
             if idx >= len(self.history):
@@ -241,7 +249,7 @@ class WorkshopTwin:
         for cb in list(self._listeners):
             try:
                 cb(name, state)
-            except Exception as exc:
+            except Exception as exc:  # pragma: no cover - log only
                 logging.error("Workshop listener failed: %s", exc)
 
     def add_listener(self, cb: Callable[[str, Dict[str, Any]], None]) -> None:
