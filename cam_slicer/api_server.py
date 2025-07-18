@@ -1,6 +1,7 @@
 from typing import List, Tuple, Optional
 from fastapi import FastAPI, HTTPException, Header, Depends, Request
 from fastapi.responses import PlainTextResponse
+from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from pydantic import BaseModel
 import os
@@ -26,10 +27,22 @@ from cam_slicer.sender import send_gcode_over_serial, list_available_ports
 from cam_slicer.probing import probe_heightmap
 from cam_slicer.heightmap import HeightMap, apply_heightmap_to_gcode
 
-setup_logging()
-API_TOKEN = os.environ.get("API_TOKEN", "changeme")
-
 app = FastAPI(title="CAM Slicer API")
+
+API_TOKEN = "changeme"
+
+def create_app() -> FastAPI:
+    """Return configured FastAPI instance."""
+    global API_TOKEN
+    setup_logging()
+    API_TOKEN = os.environ.get("API_TOKEN", API_TOKEN)
+
+    if not any(getattr(r, "path", "").startswith("/logs") for r in app.routes):
+        logs_dir = Path("logs")
+        logs_dir.mkdir(exist_ok=True)
+        app.mount("/logs", StaticFiles(directory=str(logs_dir)), name="logs")
+
+    return app
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
@@ -56,21 +69,6 @@ class StreamRequest(BaseModel):
     points: List[Tuple[float, float, float]]
     port: str
     baud: int = 115200
-    profile: Optional[dict] = None
-
-class TrajectoryRequest(BaseModel):
-    points: List[Tuple[float, float, float]]
-    profile: Optional[dict] = None
-
-class OptimizeRequest(BaseModel):
-    analyzer: str
-    points: List[Tuple[float, float, float]]
-    tool: Optional[str] = None
-    material: Optional[str] = None
-
-class SendRequest(BaseModel):
-    gcode: str
-    port: str
 
 class ProbeRequest(BaseModel):
     x_start: float
@@ -87,63 +85,11 @@ class HeightmapRequest(BaseModel):
     heightmap: str
     format: str = "csv"
 
-@app.on_event("startup")
-def startup_event() -> None:
-    load_plugins()
-    logging.info("API server started and plugins loaded")
-
-@app.get("/plugins")
-def list_plugins(token: str = Depends(verify_token)) -> List[dict]:
-    plugins = get_all_plugins()
-    return [{"name": p["name"], "description": p["description"]} for p in plugins]
-
-@app.post("/plugins/{name}")
-def run_plugin(name: str, req: PluginRunRequest, token: str = Depends(verify_token)) -> List[Tuple[float, float, float]]:
-    plugin = get_plugin(name)
-    if not plugin:
-        raise HTTPException(status_code=404, detail="Plugin not found")
-    args = req.args or []
-    toolpath = req.toolpath
-    try:
-        if toolpath is not None:
-            result = execute_plugin(name, [toolpath])
-        else:
-            result = execute_plugin(name, args)
-    except Exception as exc:
-        logging.error("Plugin run failed: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc))
-    return result
-
-@app.post("/stream_robotic")
-def stream_robotic(req: StreamRequest, token: str = Depends(verify_token)) -> dict:
-    profile = (
-        ArmKinematicProfile(**req.profile)
-        if req.profile
-        else ArmKinematicProfile(name="basic")
-    )
-    try:
-        stream_robotic_toolpath(req.points, profile, req.port, req.baud)
-    except Exception as exc:
-        logging.error("Streaming failed: %s", exc)
-        raise HTTPException(status_code=500, detail=str(exc))
-    return {"status": "ok"}
-
-@app.post("/send")
-def send_gcode(req: SendRequest, token: str = Depends(verify_token)) -> dict:
-    logging.info("Sending G-code to %s", req.port)
-    try:
-        log_output = send_gcode_over_serial(req.gcode, req.port)
-        status = "ok"
-    except Exception as exc:
-        logging.error("Serial send failed: %s", exc)
-        log_output = str(exc)
-        status = "error"
-    return {"status": status, "log": log_output}
-
 @app.post("/heightmap")
 def apply_heightmap_api(
     req: HeightmapRequest, token: str = Depends(verify_token)
 ) -> dict:
+    """Apply a heightmap to raw G-code and return adjusted text."""
     logging.info("Applying heightmap to G-code")
     try:
         hm = HeightMap.from_text(req.heightmap, fmt=req.format)
@@ -180,3 +126,5 @@ def list_ports(token: str = Depends(verify_token)) -> list[str]:
     except Exception as exc:
         logging.error("Failed to list ports: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+__all__ = ["app", "create_app"]
