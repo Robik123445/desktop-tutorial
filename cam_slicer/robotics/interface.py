@@ -5,14 +5,14 @@ import logging
 import math
 from typing import Callable, List, Tuple, Sequence
 
-try:
+try:  # optional, for YAML profiles
     import yaml  # type: ignore
-except Exception:
+except Exception:  # pragma: no cover - yaml optional
     yaml = None
 
-try:
+try:  # optional geofence utilities
     from cam_slicer.utils.geofence import GeoFence
-except Exception:
+except Exception:  # pragma: no cover - optional
     GeoFence = None  # type: ignore
 
 from cam_slicer.logging_config import setup_logging
@@ -40,12 +40,11 @@ class ArmKinematicProfile:
         0.0,
     )
     workspace: Tuple[
-        Tuple[float, float],
-        Tuple[float, float],
-        Tuple[float, float],
+        Tuple[float, float], Tuple[float, float], Tuple[float, float]
     ] | None = None
 
     def inverse_kinematics(self, pose: Sequence[float]) -> List[float]:
+        """Compute inverse kinematics for a 2R planar arm."""
         if len(self.link_lengths) != 2 or self.joint_types != ["revolute", "revolute"]:
             raise NotImplementedError("IK only implemented for 2R arms")
         x, y = pose[0], pose[1]
@@ -58,6 +57,8 @@ class ArmKinematicProfile:
         k2 = l2 * math.sin(q2)
         q1 = math.atan2(y, x) - math.atan2(k2, k1)
         return [math.degrees(q1), math.degrees(q2)]
+
+    # --- Checks ---------------------------------------------------------
 
     def within_limits(self, joints: Sequence[float]) -> bool:
         """Return ``True`` if all joint angles are inside limits."""
@@ -78,6 +79,8 @@ class ArmKinematicProfile:
         if not inside:
             logger.debug("Pose %.2f,%.2f,%.2f outside workspace", x, y, z)
         return inside
+
+    # --- Utility helpers ------------------------------------------------
 
     def workspace_to_joints(self, pose: Sequence[float]) -> List[float]:
         """Convert pose to joint angles while checking limits and workspace."""
