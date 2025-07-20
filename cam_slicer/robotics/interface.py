@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import logging
 import math
-from typing import Callable, List, Tuple, Sequence
+from typing import Callable, List, Tuple, Sequence, Optional
 
 try:  # optional, for YAML profiles
     import yaml  # type: ignore
@@ -29,19 +29,12 @@ class ArmKinematicProfile:
     link_lengths: List[float] = field(default_factory=list)
     joint_types: List[str] = field(default_factory=list)
     joint_limits: List[Tuple[float, float]] = field(default_factory=list)
-    dh_params: List[Tuple[float, float, float, float]] | None = None
-    urdf_path: str | None = None
+    dh_params: Optional[List[Tuple[float, float, float, float]]] = None
+    urdf_path: Optional[str] = None
     tcp: Tuple[float, float, float, float, float, float] = (
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0
     )
-    workspace: Tuple[
-        Tuple[float, float], Tuple[float, float], Tuple[float, float]
-    ] | None = None
+    workspace: Optional[Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]]] = None
 
     def inverse_kinematics(self, pose: Sequence[float]) -> List[float]:
         """Compute inverse kinematics for a 2R planar arm."""
@@ -57,8 +50,6 @@ class ArmKinematicProfile:
         k2 = l2 * math.sin(q2)
         q1 = math.atan2(y, x) - math.atan2(k2, k1)
         return [math.degrees(q1), math.degrees(q2)]
-
-    # --- Checks ---------------------------------------------------------
 
     def within_limits(self, joints: Sequence[float]) -> bool:
         """Return ``True`` if all joint angles are inside limits."""
@@ -80,11 +71,8 @@ class ArmKinematicProfile:
             logger.debug("Pose %.2f,%.2f,%.2f outside workspace", x, y, z)
         return inside
 
-    # --- Utility helpers ------------------------------------------------
-
     def workspace_to_joints(self, pose: Sequence[float]) -> List[float]:
         """Convert pose to joint angles while checking limits and workspace."""
-
         if not self.within_workspace(pose):
             raise ValueError("pose outside workspace")
         joints = self.inverse_kinematics(pose)
@@ -92,9 +80,8 @@ class ArmKinematicProfile:
             raise ValueError("joint limits exceeded")
         return joints
 
-    def check_collision(self, joints: Sequence[float], fence: "GeoFence" | None) -> bool:
+    def check_collision(self, joints: Sequence[float], fence: Optional["GeoFence"]) -> bool:
         """Return ``True`` if any joint lies inside a forbidden zone."""
-
         if fence is None:
             return False
         x = y = 0.0
@@ -120,10 +107,9 @@ def format_extended_g1(
     a: float = 0.0,
     b: float = 0.0,
     c: float = 0.0,
-    feed: float | None = None,
+    feed: Optional[float] = None,
 ) -> str:
     """Return extended ``G1`` line including optional feed."""
-
     line = (
         f"G1 X{x:.3f} Y{y:.3f} Z{z:.3f} "
         f"A{a:.3f} B{b:.3f} C{c:.3f}"
@@ -133,9 +119,8 @@ def format_extended_g1(
     return line
 
 
-def format_move_arm(joints: Sequence[float], feed: float | None = None) -> str:
+def format_move_arm(joints: Sequence[float], feed: Optional[float] = None) -> str:
     """Format ``MOVE_ARM`` joint command."""
-
     parts = ["MOVE_ARM"]
     for idx, val in enumerate(joints, 1):
         parts.append(f"J{idx}={val:.3f}")
@@ -151,7 +136,6 @@ def export_robotic_toolpath(
     mode: str = "xyzabc",
 ) -> List[str]:
     """Export a toolpath in either workspace or joint format."""
-
     lines: List[str] = []
     for pose in toolpath:
         pose = tuple(pose)
