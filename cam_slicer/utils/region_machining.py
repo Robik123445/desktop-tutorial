@@ -6,7 +6,8 @@ import logging
 try:
     from shapely.geometry import Polygon, Point  # type: ignore
     from shapely.ops import unary_union
-except Exception:  # pragma: no cover - optional
+except Exception as exc:  # pragma: no cover - optional
+    logging.getLogger(__name__).warning("Shapely not installed: %s", exc)
     Polygon = None  # type: ignore
     Point = None  # type: ignore
     unary_union = None  # type: ignore
@@ -32,18 +33,3 @@ def clip_toolpath_to_regions(toolpath: List[Point3D], regions: Iterable[List[Poi
     Returns
     -------
     list of tuple
-        Toolpath with points outside the regions removed.
-    """
-    if Polygon is None:
-        raise ImportError("shapely is required for region clipping")
-    polys = [Polygon(r) for r in regions if len(r) >= 3]
-    if not polys:
-        logger.info("No regions provided; returning original toolpath")
-        return toolpath
-    area = unary_union(polys)
-    result: List[Point3D] = []
-    for pt in toolpath:
-        if area.contains(Point(pt[0], pt[1])):
-            result.append(pt)
-    logger.info("Toolpath clipped: %d -> %d points", len(toolpath), len(result))
-    return result
