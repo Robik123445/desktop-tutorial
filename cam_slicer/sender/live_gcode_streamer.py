@@ -10,9 +10,11 @@ from cam_slicer.logging_config import setup_logging
 from .serial_streamer import _wait_for_ok
 
 setup_logging()
+logger = logging.getLogger(__name__)
 try:
     import serial  # type: ignore
-except ModuleNotFoundError:  # pragma: no cover - optional dependency
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    logger.warning("pyserial not installed: %s", exc)
     serial = None  # type: ignore
 
 
@@ -38,32 +40,3 @@ class LiveGcodeStreamer:
 
     def resume(self) -> None:
         """Resume sending commands."""
-        self._paused = False
-        logging.info("Streaming resumed")
-
-    def stop(self) -> None:
-        """Stop streaming early."""
-        self._stop = True
-        logging.info("Streaming stopped")
-
-    def stream(self) -> None:
-        """Send the G-code file line by line."""
-        lines = [ln.strip() for ln in self.path.read_text().splitlines() if ln.strip()]
-        total = len(lines)
-        with serial.Serial(self.port, self.baud, timeout=1) as ser:
-            logging.info(
-                "Streaming %s to %s at %d baud", self.path, self.port, self.baud
-            )
-            idx = 0
-            while idx < total and not self._stop:
-                if self._paused:
-                    time.sleep(0.1)
-                    continue
-                cmd = lines[idx]
-                ser.write((cmd + "\n").encode())
-                logging.info("Sent: %s", cmd)
-                _wait_for_ok(ser)
-                idx += 1
-                print(f"{idx}/{total} lines sent", end="\r")
-        print()
-        logging.info("Finished streaming %s", self.path)
