@@ -33,3 +33,18 @@ def clip_toolpath_to_regions(toolpath: List[Point3D], regions: Iterable[List[Poi
     Returns
     -------
     list of tuple
+        Toolpath with points outside the regions removed.
+    """
+    if Polygon is None:
+        raise ImportError("shapely is required for region clipping")
+    polys = [Polygon(r) for r in regions if len(r) >= 3]
+    if not polys:
+        logger.info("No regions provided; returning original toolpath")
+        return toolpath
+    area = unary_union(polys)
+    result: List[Point3D] = []
+    for pt in toolpath:
+        if area.contains(Point(pt[0], pt[1])):
+            result.append(pt)
+    logger.info("Toolpath clipped: %d -> %d points", len(toolpath), len(result))
+    return result
