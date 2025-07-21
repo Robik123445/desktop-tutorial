@@ -1,4 +1,46 @@
-def start(self) -> None:
+import threading
+import logging
+import asyncio
+from typing import Callable, Optional
+
+from cam_slicer.logging_config import setup_logging
+
+setup_logging()
+logger = logging.getLogger(__name__)
+
+
+class SensorStream:
+    """Read live pose data from serial or websocket.
+
+    Parameters
+    ----------
+    source : str
+        Serial port name or websocket URL.
+    mode : str, optional
+        ``"serial"`` or ``"websocket"``. Defaults to ``"serial"``.
+    baud : int, optional
+        Serial baud rate when ``mode`` is serial. Defaults to 115200.
+    callback : Callable[[tuple], None], optional
+        Called with ``(x, y, z, a, b, c)`` for each received frame.
+    """
+
+    def __init__(
+        self,
+        source: str,
+        *,
+        mode: str = "serial",
+        baud: int = 115200,
+        callback: Optional[Callable[[tuple], None]] = None,
+    ) -> None:
+        self.source = source
+        self.mode = mode
+        self.baud = baud
+        self.callback = callback
+        self._running = False
+        self._thread: Optional[threading.Thread] = None
+        self.last_pose: Optional[tuple] = None
+
+    def start(self) -> None:
         """Start background reading thread."""
         if self._running:
             return
@@ -24,12 +66,6 @@ def start(self) -> None:
 
     def _run_serial(self) -> None:
         try:
-            import serial
-        except ModuleNotFoundError as exc:  # pragma: no cover - optional
-            logger.error("pyserial not installed: %s", exc)
-            return
-
-        try:
             with serial.Serial(self.source, self.baud, timeout=1) as ser:
                 while self._running:
                     line = ser.readline().decode().strip()
@@ -53,3 +89,10 @@ def start(self) -> None:
     def _handle_line(self, line: str) -> None:
         try:
             parts = [float(x) for x in line.replace(",", " ").split()]
+            if len(parts) >= 6:
+                pose = tuple(parts[:6])
+                self.last_pose = pose
+                if self.callback:
+                    self.callback(pose)
+        except ValueError:
+            logger.debug("Ignoring invalid line: %s", line)
