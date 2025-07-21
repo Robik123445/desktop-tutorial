@@ -1,3 +1,35 @@
+import logging
+import re
+from typing import Callable, Tuple, Optional
+
+from cam_slicer.logging_config import setup_logging
+from cam_slicer.sensors import generate_heightmap, export_heightmap_to_json
+from cam_slicer.utils.zmap import ZMap
+
+setup_logging()
+logger = logging.getLogger(__name__)
+
+try:
+    import serial  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - optional
+    serial = None  # type: ignore
+
+def _default_send(cmd: str, port: "serial.Serial") -> str:
+    port.write((cmd + "\n").encode())
+    logger.info("Sent: %s", cmd)
+    resp = port.readline().decode().strip()
+    if resp:
+        logger.info("Recv: %s", resp)
+    return resp
+
+def _probe_using_serial(x: float, y: float, port: "serial.Serial", depth: float, feed: float) -> float:
+    _default_send(f"G0 X{x:.3f} Y{y:.3f}", port)
+    resp = _default_send(f"G38.2 Z{depth:.3f} F{feed:.1f}", port)
+    m = re.search(r"-?\d+(?:\.\d+)?", resp)
+    z = float(m.group(0)) if m else 0.0
+    _default_send("G0 Z5", port)
+    return z
+
 def probe_heightmap(
     x_range: Tuple[float, float],
     y_range: Tuple[float, float],
@@ -10,13 +42,6 @@ def probe_heightmap(
     probe_func: Optional[Callable[[float, float], float]] = None,
     save_path: Optional[str] = None,
 ) -> ZMap:
-    """Probe a grid and return a :class:`ZMap` with measured heights.
-
-    If ``probe_func`` is provided, it will be used to obtain Z values for each
-    ``(x, y)`` pair. Otherwise ``port`` must be specified and ``pyserial``
-    available so probing commands are sent to the machine.
-    """
-
     if probe_func is None:
         if port is None:
             raise ValueError("port required when probe_func is None")
