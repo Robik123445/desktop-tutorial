@@ -1,12 +1,11 @@
-import logging
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List
-
-from .machine import Machine
+from cam_slicer.machines.machine import Machine
 
 try:
-    from cam_slicer.ros_bridge import ROSBridge as _ROSBridge
+    from cam_slicer.ros.ros_bridge import ROSBridge as _ROSBridge
 except ImportError:
     _ROSBridge = None
 
@@ -56,6 +55,7 @@ class MachineManager:
         manager = MachineManager()
         data = json.loads(Path(path).read_text())
         for item in data.get("machines", []):
+            # Use loaded ROS bridge class if available
             rb = _ROSBridge() if _ROSBridge else None
             machine = Machine(item["name"], item["port"], item.get("baud", 115200), rb)
             manager.add_machine(machine)
