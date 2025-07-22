@@ -1,3 +1,37 @@
+import logging
+import time
+from pathlib import Path
+from typing import Optional
+
+try:
+    import serial
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    logger.warning("pyserial not installed: %s", exc)
+    serial = None  # type: ignore
+
+from .serial_streamer import _wait_for_ok
+
+
+class StreamController:
+    """Simple state holder for pause/resume/stop."""
+
+    def __init__(self) -> None:
+        self._paused = False
+        self._stop = False
+
+    def pause(self) -> None:
+        self._paused = True
+        logging.info("Streaming paused")
+
+    def resume(self) -> None:
+        self._paused = False
+        logging.info("Streaming resumed")
+
+    def stop(self) -> None:
+        self._stop = True
+        logging.info("Streaming stopped by user")
+
+
 def stream_gcode_interactive(
     gcode_path: str,
     port: str,
