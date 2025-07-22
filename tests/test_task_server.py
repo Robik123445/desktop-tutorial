@@ -1,20 +1,22 @@
-import types
-import pytest
-pytest.importorskip("fastapi")
+import time
 from fastapi.testclient import TestClient
-from cam_slicer.task_server import create_app
+from cam_slicer import task_server
 
-app = create_app()
+app = task_server.create_app()
 client = TestClient(app)
 
-
-def test_run_vizualizuj(monkeypatch):
-    monkeypatch.setattr("cam_slicer.run_live_detection", lambda: None, raising=False)
-    resp = client.post("/run/vizualizuj")
+def test_run_dummy_task():
+    resp = client.post("/run/dummy_task")
     assert resp.status_code == 200
-    assert resp.json()["detail"] == "ok"
+    tid = resp.json()["task_id"]
+    assert tid in task_server.statuses
+    # wait a bit for the worker to finish
+    for _ in range(10):
+        if task_server.statuses.get(tid) == "done":
+            break
+        time.sleep(0.5)
+    assert task_server.statuses.get(tid) == "done"
 
-
-def test_run_unknown():
-    resp = client.post("/run/unknown")
+def test_run_unknown_task():
+    resp = client.post("/run/bad")
     assert resp.status_code == 400
