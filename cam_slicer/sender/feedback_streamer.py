@@ -1,3 +1,14 @@
+import logging
+from pathlib import Path
+from typing import Callable
+
+try:
+    import serial
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    logger.warning("pyserial not installed: %s", exc)
+    serial = None  # type: ignore
+
+
 def _parse_xyz(line: str) -> tuple[float, float, float]:
     """Extract X, Y, Z from a G-code line if present."""
     x = y = z = 0.0
