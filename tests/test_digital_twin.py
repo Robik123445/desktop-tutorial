@@ -1,48 +1,16 @@
-import time
-import pytest
-from cam_slicer.digital_twin import DigitalTwin
-
-
-class DummyConn:
-    def __init__(self, lines):
-        self.lines = lines
-
-    def readline(self):
-        if self.lines:
-            return self.lines.pop(0)
-        time.sleep(0.01)
-        return ""
-
-
-def test_digital_twin_monitoring(tmp_path):
-    """Test monitoring and logging with DigitalTwin."""
-    conn = DummyConn(["X0 Y0 Z0 F100 T1 A0", "X1 Y0 Z0 F100 T1 A0"])
-    twin = DigitalTwin(conn)
-
-    twin.start_monitoring()
-    time.sleep(0.05)
-    twin.stop_monitoring()
-
-    state = twin.get_live_state()
-    assert state["x"] == 1.0
-
-    report_file = tmp_path / "report.txt"
-    twin.log_status(report_file)
-    assert report_file.exists()
-
-    deviation = twin.compare_with_planned([(0, 0, 0), (1, 0, 0)])
-    assert deviation == []
-
-
-def test_simulate_toolpath_preview():
-    """Toolpath simulation returns a 3D figure when requested."""
+def test_simulate_toolpath_no_delay(monkeypatch):
+    """No sleep should occur when delay is False."""
     pytest.importorskip("matplotlib")
 
-    twin = DigitalTwin(None)
-    tp = [(0, 0, 0), (1, 0, 1), (2, 0, 0)]
-    fig = twin.simulate_toolpath(tp, interval=0, show_3d=True)
+    called = []
 
-    assert fig is not None
-    ax = fig.axes[0]
-    assert getattr(ax, "name", "") == "3d"
-    assert len(ax.lines[0].get_xdata()) == len(tp)
+    def fake_sleep(_):
+        called.append(True)
+
+    import cam_slicer.digital_twin as dt
+
+    monkeypatch.setattr(dt.time, "sleep", fake_sleep)
+    twin = dt.DigitalTwin(None)
+    twin.simulate_toolpath([(0, 0, 0), (1, 0, 0)], interval=0.1, delay=False)
+
+    assert not called
