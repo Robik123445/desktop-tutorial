@@ -1,54 +1,66 @@
-const fs = require('fs').promises;
-const path = require('path');
+// Simple browser-friendly logger with in-memory history.
+// Logs are stored in localStorage under the key 'centralLog'.
+// Provides default export `log` and helper `getLogContent`.
 
-const logPath = path.join(__dirname, '..', 'logs', 'central.log');
-const logDir = path.dirname(logPath);
-const MAX_SIZE = 1024 * 1024; // 1 MB
-
+const STORAGE_KEY = 'centralLog';
 const LEVELS = { DEBUG: 0, INFO: 1, WARNING: 2, ERROR: 3 };
-let currentLevel = LEVELS[(process.env.LOG_LEVEL || 'INFO').toUpperCase()] || LEVELS.INFO;
+
+// Determine initial level from environment variable if provided.
+let currentLevel = LEVELS[(typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_LOG_LEVEL || 'INFO').toUpperCase()] ?? LEVELS.INFO;
+
+// Load previous log entries from localStorage when available.
+let entries = [];
+if (typeof window !== 'undefined' && window.localStorage) {
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    entries = saved ? JSON.parse(saved) : [];
+  } catch {
+    entries = [];
+  }
+}
+
+function save() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    } catch {
+      // ignore write failures
+    }
+  }
+}
 
 /**
- * Append a log entry to the shared central log file.
+ * Log a message with optional severity and error object.
+ * Severity levels: DEBUG, INFO, WARNING, ERROR.
  */
-async function log(message, level = 'INFO', error) {
+export default function log(message, level = 'INFO', error) {
   const lvl = LEVELS[level.toUpperCase()] ?? LEVELS.INFO;
   if (lvl < currentLevel) return;
 
   let entry = `${new Date().toISOString()} ${level}: ${message}`;
-  if (error) {
-    entry += ` - ${error.stack || error}`;
-  }
-  entry += '\n';
-  try {
-    await fs.mkdir(logDir, { recursive: true });
-    try {
-      const stat = await fs.stat(logPath);
-      if (stat.size > MAX_SIZE) {
-        await fs.rename(logPath, `${logPath}.1`);
-      }
-    } catch (err) {
-      if (err.code !== 'ENOENT') throw err;
-    }
-    await fs.appendFile(logPath, entry);
-  } catch (err) {
-    console.error('Failed to write log:', err);
-  }
+  if (error) entry += ` - ${error.stack || error}`;
+
+  // Output to console
+  if (lvl >= LEVELS.ERROR) console.error(entry);
+  else if (lvl === LEVELS.WARNING) console.warn(entry);
+  else console.log(entry);
+
+  entries.push(entry);
+  if (entries.length > 1000) entries.shift();
+  save();
 }
 
 /**
- * Read log file content for export.
+ * Return the collected log entries as a newline separated string.
  */
-function getLogContent() {
-  try {
-    fs.mkdirSync(logDir, { recursive: true });
-    return fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : '';
-  } catch (err) {
-    console.error('Failed to read log:', err);
-    return '';
-  }
+export function getLogContent() {
+  return entries.join('\n');
 }
 
-module.exports = log;
-module.exports.getLogContent = getLogContent;
-module.exports.logPath = logPath;
+/**
+ * Allow tests or callers to change the current log level.
+ */
+export function setLogLevel(level) {
+  const lvl = LEVELS[level.toUpperCase()];
+  if (lvl !== undefined) currentLevel = lvl;
+}
