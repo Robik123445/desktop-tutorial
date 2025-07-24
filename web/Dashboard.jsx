@@ -1,5 +1,5 @@
 import React from 'react';
-import log from './logger';
+import log from '../logger.js';
 
 /**
  * Dashboard component showing sidebar and recent projects.
