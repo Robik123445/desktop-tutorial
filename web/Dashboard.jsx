@@ -1,5 +1,16 @@
+import React from 'react';
+import log from './logger';
+
+/**
+ * Dashboard component showing sidebar and recent projects.
+ * Logs when the user starts a new project.
+ */
 export default function Dashboard({ projects = [] }) {
-  console.log('New project');
+  const recent = projects.slice(0, 3);
+
+  const handleNewProject = () => {
+    log('New Project clicked');
+  };
 
   return (
     <div className="min-h-screen flex">
@@ -25,15 +36,3 @@ export default function Dashboard({ projects = [] }) {
           <h2 className="text-xl font-semibold mb-2">Recent Projects</h2>
           <ul className="divide-y divide-gray-200">
             {recent.map((p, idx) => (
-              <li key={idx} className="py-2 flex justify-between">
-                <span className="font-medium">{p.name}</span>
-                <span className="text-gray-500 text-sm">{p.date}</span>
-                <span className="text-gray-400 text-sm">{p.type}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </main>
-    </div>
-  );
-}
