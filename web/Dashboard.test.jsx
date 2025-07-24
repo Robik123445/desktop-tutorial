@@ -14,3 +14,13 @@ test('renders heading, button and recent projects', () => {
   expect(screen.getByText('New Project')).toBeInTheDocument();
   expect(screen.getAllByRole('listitem')).toHaveLength(3);
 });
+
+test('uses mockProjects when none provided', () => {
+  render(<Dashboard />);
+  expect(screen.getByText('Demo Job')).toBeInTheDocument();
+});
+
+test('shows message when list empty', () => {
+  render(<Dashboard projects={[]} />);
+  expect(screen.getByText('Žiadne nedávne projekty.')).toBeInTheDocument();
+});
