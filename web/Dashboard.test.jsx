@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import Dashboard from './Dashboard';
+import Dashboard from './src/Dashboard';
 
 test('renders heading, button and recent projects', () => {
   const projects = [
