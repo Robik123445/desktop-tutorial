@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Allow users to submit bug reports or suggestions.
@@ -25,10 +25,3 @@ export default function BugReportForm() {
       <button
         onClick={send}
         className="bg-red-600 text-white px-3 py-1 rounded"
-        data-testid="bug-send"
-      >
-        Submit Bug Report
-      </button>
-    </div>
-  );
-}
