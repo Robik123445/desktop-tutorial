@@ -1,8 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import ToolpathPreview from './src/ToolpathPreview';
 
-jest.mock('./log', () => jest.fn());
-import log from './log';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 it('parses moves and animates play', () => {
   jest.useFakeTimers();
