@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import HeightmapViewer from './HeightmapViewer';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('loads heightmap and logs file name', () => {
   const data = { points: [{ x: 0, y: 0, z: 0 }] };

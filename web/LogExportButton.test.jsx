@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import LogExportButton from './LogExportButton';
 
-jest.mock('./logger', () => {
+jest.mock('./src/log.js', () => {
   const log = jest.fn();
   log.getLogContent = jest.fn(() => 'log');
   return log;
@@ -10,7 +10,7 @@ jest.mock('./logger', () => {
 
 jest.mock('file-saver', () => ({ saveAs: jest.fn() }));
 import { saveAs } from 'file-saver';
-import log from './logger';
+import log from './src/log.js';
 
 test('exports logs when clicked', () => {
   render(<LogExportButton />);

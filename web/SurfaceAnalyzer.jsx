@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useRef, useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Analyze G-code against a heightmap and highlight problem areas.

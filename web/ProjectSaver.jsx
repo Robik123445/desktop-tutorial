@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Form to save a project and export G-code. Shows optional notes field

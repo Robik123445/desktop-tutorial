@@ -1,5 +1,5 @@
 import React from 'react';
-import log from '../logger.js';
+import log from './log.js';
 
 // fallback data used in tests or when no projects are provided
 const mockProjects = [

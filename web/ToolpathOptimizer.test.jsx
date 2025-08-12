@@ -2,8 +2,8 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import ToolpathOptimizer from './ToolpathOptimizer';
 jest.useFakeTimers();
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('optimizes toolpath and logs actions', () => {
   const code = 'G1 X0 Y0\nG1 X1 Y0';

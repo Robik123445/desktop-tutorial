@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 // Supported operations and available tool heads
 const OPERATIONS = ['Cut', 'Engrave', 'Mill', 'Print'];

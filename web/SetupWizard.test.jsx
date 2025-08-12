@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SetupWizard from './SetupWizard';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('wizard steps and export', () => {
   const file = new File(['<svg></svg>'], 'design.svg', { type: 'image/svg+xml' });

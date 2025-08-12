@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Show details from last_block.json and allow resuming.

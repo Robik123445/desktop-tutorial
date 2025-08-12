@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import SurfaceAnalyzer from './SurfaceAnalyzer';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('detects collision and no contact', () => {
   const gcode = 'G1 X0 Y0 Z0\nG1 X1 Y0 Z-1\nG1 X2 Y0 Z0.3';

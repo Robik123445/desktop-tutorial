@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import VRViewer from './VRViewer';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 jest.mock('three/examples/jsm/webxr/VRButton.js', () => ({
   VRButton: { createButton: () => document.createElement('div') }

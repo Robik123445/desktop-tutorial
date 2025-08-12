@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import WorkflowShare from './WorkflowShare';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 const mockFile = new File([JSON.stringify({test:1})], 'wf.json', {type:'application/json'});
 

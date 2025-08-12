@@ -2,7 +2,7 @@ import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, TransformControls, Html } from '@react-three/drei';
 import * as THREE from 'three';
-import log from "./logger";
+import log from "./src/log.js";
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import ToolpathRenderer from "./ToolpathRenderer";

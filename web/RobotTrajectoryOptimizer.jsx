@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 export default function RobotTrajectoryOptimizer({ toolpath = [], profile = {} }) {
   const [optimized, setOptimized] = useState([]);

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Drag-and-drop file importer with basic preview.
