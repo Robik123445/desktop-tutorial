@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Webcam feed with mock object detection. Shows warning when a person or hand is detected.

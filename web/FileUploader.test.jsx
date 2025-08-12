@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import FileUploader from './FileUploader';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('shows preview, logs actions and button after selecting file', () => {
   const file = new File(['dummy'], 'test.dxf', { type: 'application/dxf' });

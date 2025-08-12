@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import MachineMonitor from './MachineMonitor';
 
 jest.useFakeTimers();
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('monitor updates status periodically', () => {
   render(<MachineMonitor />);

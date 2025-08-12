@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import { ToolpathData, ToolpathType, Diagnostic, HEAD_COLORS, ToolHead } from './viewportUtils';
-import log from './logger';
+import log from './src/log.js';
 const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
 interface ToolpathRendererProps {

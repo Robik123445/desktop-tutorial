@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Html, TransformControls } from '@react-three/drei';
 import * as THREE from 'three';
-import log from './logger';
+import log from './src/log.js';
 
 export interface ZonePlan {
   base: [number, number];

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { saveAs } from 'file-saver';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Allow exporting and importing workflows as JSON files.

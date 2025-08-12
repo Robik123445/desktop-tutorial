@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * 2D toolpath transformation controls.

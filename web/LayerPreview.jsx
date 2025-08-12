@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Display sliced toolpath layers with a simple preview.

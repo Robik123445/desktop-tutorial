@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import FileUploader from './FileUploader';
 import ToolpathTransform from './ToolpathTransform';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Advanced Vector Editor

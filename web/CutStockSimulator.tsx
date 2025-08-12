@@ -8,7 +8,7 @@ import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js';
 import { BufferGeometryUtils } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { saveAs } from 'file-saver';
 import { ToolpathData } from './viewportUtils';
-import log from './logger';
+import log from './src/log.js';
 
 interface Voxel {
   pos: THREE.Vector3;

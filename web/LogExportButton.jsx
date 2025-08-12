@@ -1,6 +1,6 @@
 import React from 'react';
 import { saveAs } from 'file-saver';
-import log, { getLogContent } from './logger';
+import log, { getLogContent } from './src/log.js';
 
 /**
  * Button that downloads `central.log` for support.

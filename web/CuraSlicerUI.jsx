@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import log from './logger';
+import log from './src/log.js';
 import ToolpathTransform from './ToolpathTransform';
 import OperationAssigner from './OperationAssigner';
 import ToolpathOptimizer from './ToolpathOptimizer';

@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ProjectManager from './ProjectManager';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 jest.mock('file-saver', () => ({ saveAs: jest.fn() }));
 import { saveAs } from 'file-saver';
 

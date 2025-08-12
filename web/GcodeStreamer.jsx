@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Stream G-code lines in blocks of 5 with basic controls.

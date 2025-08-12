@@ -1,8 +1,8 @@
 import { render, fireEvent, screen } from '@testing-library/react';
 import WorkspaceScanner from './WorkspaceScanner';
-import log from './logger';
+import log from './src/log.js';
 
-jest.mock('./logger');
+jest.mock('./src/log.js');
 
 test('starts scan with selected mode', () => {
   render(<WorkspaceScanner onScan={() => {}} />);

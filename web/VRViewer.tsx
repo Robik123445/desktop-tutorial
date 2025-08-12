@@ -4,7 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { VRButton } from 'three/examples/jsm/webxr/VRButton.js';
 import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
-import log from './logger';
+import log from './src/log.js';
 
 interface Point { x: number; y: number; z: number; }
 

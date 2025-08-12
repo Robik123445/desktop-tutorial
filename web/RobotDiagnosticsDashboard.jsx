@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import log, { getLogContent } from './logger';
+import log, { getLogContent } from './src/log.js';
 
 /**
  * Display basic statistics parsed from central.log.

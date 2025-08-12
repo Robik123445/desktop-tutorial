@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import log from './logger';
+import log from './src/log.js';
 import ToolpathSimulator from './ToolpathSimulator';
 
 /**

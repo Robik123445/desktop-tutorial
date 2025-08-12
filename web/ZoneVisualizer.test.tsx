@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import ZoneVisualizer, { ZonePlan } from './ZoneVisualizer';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 const zones: ZonePlan[] = [
   { base: [0, 0], toolpath: [[0,0,0]], move_cmds: ['MOVE_BASE X0 Y0'] },

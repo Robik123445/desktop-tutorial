@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Step-by-step wizard guiding a new user through setup.

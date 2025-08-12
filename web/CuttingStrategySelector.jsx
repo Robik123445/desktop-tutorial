@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Radio group to choose a cutting strategy. Each option includes

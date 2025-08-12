@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import HapticToolpathEditor from './HapticToolpathEditor';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('draws path and logs export', () => {
   const { container, getByText } = render(<HapticToolpathEditor width={200} height={200} />);

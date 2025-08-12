@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import VectorEditor from './VectorEditor';
-jest.mock('./logger', () => jest.fn());
+jest.mock('./src/log.js', () => jest.fn());
 
 beforeAll(() => {
   global.cv = {

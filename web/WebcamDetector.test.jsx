@@ -11,8 +11,8 @@ beforeAll(() => {
   };
 });
 
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 
 test('shows warning banner when person detected', async () => {
   render(<WebcamDetector testDetection="hand" />);

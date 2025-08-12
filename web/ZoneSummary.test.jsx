@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import ZoneSummary from './ZoneSummary';
-jest.mock('./logger', () => jest.fn());
+jest.mock('./src/log.js', () => jest.fn());
 
 const zones = [
   { base: [0, 0], toolpath: [[0,0,0]], move_cmds: ['MOVE_BASE X0 Y0'] },

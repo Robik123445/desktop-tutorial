@@ -1,6 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const log = require('./log');
+import fs from 'fs';
+import path from 'path';
+import log from './log.js';
 
 test('writes to log.txt asynchronously', async () => {
   const file = path.join(__dirname, 'log.txt');

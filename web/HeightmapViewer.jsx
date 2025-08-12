@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import * as THREE from 'three';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * Upload and visualize a heightmap from JSON.

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 // Predefined materials with suggested spindle speeds and feedrates
 const MATERIAL_DATA = {

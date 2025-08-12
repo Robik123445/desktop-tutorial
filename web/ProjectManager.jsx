@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { saveAs } from 'file-saver';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * ProjectManager allows saving the full CAM project to a JSON file

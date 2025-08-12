@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, fireEvent, screen, act } from '@testing-library/react';
 import Viewport3D from './Viewport3D';
-jest.mock('./logger', () => jest.fn());
-import log from './logger';
+jest.mock('./src/log.js', () => jest.fn());
+import log from './src/log.js';
 jest.useFakeTimers();
 jest.mock('file-saver', () => ({ saveAs: jest.fn() }));
 import { saveAs } from 'file-saver';

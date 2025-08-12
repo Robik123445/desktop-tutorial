@@ -1,5 +1,5 @@
 import React from 'react';
-import log from './logger';
+import log from './src/log.js';
 
 /**
  * DiagnosticsPanel
