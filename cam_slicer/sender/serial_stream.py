@@ -1,3 +1,5 @@
+from pathlib import Path
+
 try:
     import serial
 except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
