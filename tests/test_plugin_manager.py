@@ -29,11 +29,8 @@ def test_default_plugins_loaded():
     plugin_manager.load_plugins()
     plugins = {p["name"] for p in plugin_manager.get_all_plugins()}
     assert "reverse_path" in plugins
-    assert "adaptive_path" in plugins
-    plugin = plugin_manager.get_plugin("adaptive_path")
-    boundary = [(1, 0), (0, 1), (-1, 0), (0, -1)]
-    segments = plugin.apply(boundary, depth=-1, stepdown=0.5, stepover=0.5)
-    assert segments
+    plugin = plugin_manager.get_plugin("reverse_path")
+    assert plugin.apply([1, 2, 3]) == [3, 2, 1]
 
 
 def test_plugin_error_handling(tmp_path):

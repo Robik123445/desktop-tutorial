@@ -1090,7 +1090,9 @@ def register():
                   version="1.0", category="toolpath")
 ```
 
-Use the plugin manager to load and query available plugins:
+Use the plugin manager to load and query available plugins. These helpers are
+available at package import time and fall back to no-ops if plugin dependencies
+are missing, so importing ``cam_slicer`` never fails:
 
 ```python
 from cam_slicer import load_plugins, reload_plugins, get_plugin, get_all_plugins
