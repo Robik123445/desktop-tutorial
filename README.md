@@ -34,6 +34,13 @@ from cam_slicer.logging_config import export_critical_logs
 report = export_critical_logs(email="ops@example.com")
 ```
 
+## Digital twin
+
+`cam_slicer.digital_twin` provides lightweight `DigitalTwin` and `WorkshopTwin`
+classes for deterministic simulation and monitoring. Processed toolpath points
+are stored in the module-level `preview_points` list and all operations are
+logged to `log.txt` for easy diagnostics.
+
 `cam_slicer.core.header_footer` provides controller-specific headers and
 footers, while `cam_slicer.core.gcode_export` handles G-code formatting.
 
