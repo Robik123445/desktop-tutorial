@@ -15,3 +15,4 @@ uvicorn
 websockets
 PyYAML
 opencv-python
+httpx>=0.28
