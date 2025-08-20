@@ -6,7 +6,6 @@ import csv
 import json
 import logging
 from pathlib import Path
-from typing import List, Tuple, Optional
 
 from .logging_config import setup_logging
 from .utils import ZMap
@@ -30,7 +29,7 @@ class HeightMap(ZMap):
     """Height map loaded from CSV or JSON text."""
 
     @classmethod
-    def from_text(cls, text: str, fmt: Optional[str] = None) -> "HeightMap":
+    def from_text(cls, text: str, fmt: str | None = None) -> "HeightMap":
         """Parse heightmap points from ``text`` in CSV or JSON format."""
         fmt = (fmt or "csv").lower()
         if fmt not in {"csv", "json"}:
@@ -47,7 +46,7 @@ class HeightMap(ZMap):
             logger.info("Loaded %d heightmap points from JSON text", len(pts))
             return cls(pts)
 
-        pts: List[Tuple[float, float, float]] = []
+        pts: list[tuple[float, float, float]] = []
         for row in csv.reader(text.splitlines()):
             if not row:
                 continue
@@ -69,11 +68,11 @@ class HeightMap(ZMap):
 
 def apply_heightmap_to_gcode(gcode: str, heightmap: HeightMap) -> str:
     """Return G-code string with Z values adjusted by ``heightmap`` offsets."""
-    out_lines: List[str] = []
+    out_lines: list[str] = []
     cur_x = cur_y = 0.0
     for line in gcode.splitlines():
         tokens = line.strip().split()
-        new_tokens: List[str] = []
+        new_tokens: list[str] = []
         for t in tokens:
             if len(t) < 2:
                 new_tokens.append(t)
