@@ -1,5 +1,6 @@
 import json
 import logging
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List
 from cam_slicer.machines.machine import Machine
@@ -10,6 +11,15 @@ except ImportError:
     _ROSBridge = None
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Job:
+    """Simple job representation with status tracking."""
+
+    id: str
+    toolpath: list[tuple[float, float, float]]
+    status: str = "pending"
 
 
 class MachineManager:
@@ -68,3 +78,6 @@ class MachineManager:
         ]}
         Path(path).write_text(json.dumps(data, indent=2))
         logger.info("Saved machine config to %s", path)
+
+
+__all__ = ["Job", "MachineManager"]
