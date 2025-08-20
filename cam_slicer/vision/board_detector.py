@@ -3,12 +3,20 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import List
 
 from cam_slicer.logging_config import setup_logging
 
 setup_logging()
 logger = logging.getLogger(__name__)
+_log_path = Path("logs/log.txt")
+if not any(
+    isinstance(h, logging.FileHandler) and getattr(h, "baseFilename", "") == str(_log_path)
+    for h in logging.getLogger().handlers
+):
+    _log_path.parent.mkdir(exist_ok=True)
+    fh = logging.FileHandler(_log_path)
+    fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logging.getLogger().addHandler(fh)
 
 try:  # optional deps
     from ultralytics import YOLO
@@ -63,7 +71,7 @@ def get_transform_from_detection(detection: dict) -> TransformConfig:
     logger.info("Created transform from detection: %s", cfg)
     return cfg
 
-def auto_transform_gcode(toolpath: List[tuple], detection: dict) -> List[str]:
+def auto_transform_gcode(toolpath: list[tuple], detection: dict) -> list[str]:
     """Generate G-code for a toolpath aligned to a detected board."""
     if not toolpath:
         return []
@@ -91,7 +99,7 @@ def auto_transform_gcode(toolpath: List[tuple], detection: dict) -> List[str]:
     from cam_slicer.core.gcode_export import toolpath_to_gcode
     return toolpath_to_gcode(toolpath, cfg, transform)
 
-def process_camera_to_gcode(toolpath: List[tuple], image_path: str, output_file: str = "auto_output.gcode") -> bool:
+def process_camera_to_gcode(toolpath: list[tuple], image_path: str, output_file: str = "auto_output.gcode") -> bool:
     """Full workflow: detect board and export aligned G-code."""
     try:
         info = detect_board_position(image_path)

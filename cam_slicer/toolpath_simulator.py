@@ -6,7 +6,7 @@ import base64
 import logging
 from io import BytesIO
 from pathlib import Path
-from typing import List, Tuple, Sequence, Optional
+from typing import Sequence
 
 import matplotlib.pyplot as plt
 
@@ -27,14 +27,14 @@ if not any(
     logging.getLogger().addHandler(_h)
 
 
-def parse_toolpath(gcode_text: str) -> List[Tuple[float, float]]:
+def parse_toolpath(gcode_text: str) -> list[tuple[float, float]]:
     """Return XY points from G0/G1 lines.
 
     Lines without coordinates are ignored. Current position is updated when
     X or Y is found. Only movements using G0 or G1 are considered.
     """
     x = y = 0.0
-    points: List[Tuple[float, float]] = []
+    points: list[tuple[float, float]] = []
     for line in gcode_text.splitlines():
         line = line.strip()
         if not line or line.startswith(";"):
@@ -63,7 +63,7 @@ def parse_toolpath(gcode_text: str) -> List[Tuple[float, float]]:
 
 
 def plot_toolpath(
-    points: Sequence[Tuple[float, float]], save_path: Optional[str | Path] = None
+    points: Sequence[tuple[float, float]], save_path: str | Path | None = None
 ) -> bytes:
     """Plot XY toolpath and return PNG bytes.
 
@@ -89,7 +89,7 @@ def plot_toolpath(
 def simulate_toolpath(gcode_text: str, include_plot: bool = False) -> dict:
     """Parse provided G-code and optionally return a base64 PNG plot."""
     pts = parse_toolpath(gcode_text)
-    plot_b64: Optional[str] = None
+    plot_b64: str | None = None
     if include_plot:
         png = plot_toolpath(pts)
         plot_b64 = base64.b64encode(png).decode()

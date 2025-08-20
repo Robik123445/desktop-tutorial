@@ -1,35 +1,52 @@
-from typing import List, Tuple, Optional
-from fastapi import FastAPI, HTTPException, Header, Depends, Request
+from __future__ import annotations
+
+import logging
+import os
+from pathlib import Path
+
+from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pathlib import Path
 from pydantic import BaseModel
-import os
-import logging
 
 from cam_slicer.logging_config import setup_logging
-from cam_slicer import (
-    load_plugins,
+from cam_slicer.plugin_manager import (
+    execute_plugin,
     get_all_plugins,
     get_plugin,
-    toolpath_to_gcode,
-    stream_robotic_toolpath,
-    ArmKinematicProfile,
-    optimize_robotic_trajectory,
-    execute_plugin,
-    feedrate_advisor,
-    trajectory_cleaner,
-    surface_comparator,
-    plugin_optimizer,
-    ml_speed_optimizer,
+    load_plugins,
 )
-from cam_slicer.sender import send_gcode_over_serial, list_available_ports
+from cam_slicer.core.gcode_export import toolpath_to_gcode
+from cam_slicer.robotics.exporter import stream_robotic_toolpath
+from cam_slicer.robotics.interface import ArmKinematicProfile
+from cam_slicer.robotics.trajectory_optimizer import optimize_robotic_trajectory
+from cam_slicer.ai.analyzers import (
+    feedrate_advisor,
+    ml_speed_optimizer,
+    plugin_optimizer,
+    surface_comparator,
+    trajectory_cleaner,
+)
+from cam_slicer.sender import list_available_ports
 from cam_slicer.probing import probe_heightmap
 from cam_slicer.heightmap import HeightMap, apply_heightmap_to_gcode
 
 app = FastAPI(title="CAM Slicer API")
 
 API_TOKEN = "changeme"
+
+setup_logging()
+logger = logging.getLogger(__name__)
+_log_path = Path("logs/log.txt")
+if not any(
+    isinstance(h, logging.FileHandler)
+    and getattr(h, "baseFilename", "") == str(_log_path)
+    for h in logging.getLogger().handlers
+):
+    _log_path.parent.mkdir(exist_ok=True)
+    fh = logging.FileHandler(_log_path)
+    fh.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logging.getLogger().addHandler(fh)
 
 def create_app() -> FastAPI:
     """Return configured FastAPI instance."""
@@ -56,27 +73,36 @@ def verify_token(x_access_token: str = Header(...)) -> str:
     return x_access_token
 
 class Toolpath(BaseModel):
-    points: List[Tuple[float, float, float]]
+    """Toolpath data container."""
+
+    points: list[tuple[float, float, float]]
+
 
 class PluginRunRequest(BaseModel):
-    toolpath: Optional[List[Tuple[float, float, float]]] = None
-    args: Optional[List[str]] = None
+    """Request schema for running a plugin."""
+
+    toolpath: list[tuple[float, float, float]] | None = None
+    args: list[str] | None = None
 
 class PluginExecRequest(BaseModel):
     pass
 
 class StreamRequest(BaseModel):
-    points: List[Tuple[float, float, float]]
+    """Request for streaming a toolpath over serial."""
+
+    points: list[tuple[float, float, float]]
     port: str
     baud: int = 115200
 
 class ProbeRequest(BaseModel):
+    """Request configuration for probing a heightmap."""
+
     x_start: float
     x_end: float
     y_start: float
     y_end: float
     step: float
-    port: Optional[str] = None
+    port: str | None = None
     baud: int = 115200
 
 class HeightmapRequest(BaseModel):
