@@ -909,6 +909,15 @@ poses = gcode_to_pose_list(["G1 X1 Y0 Z0", "G1 X1 Y1 Z0"], cfg)
 adapter.broadcast_toolpath([(1,0,0),(1,1,0)], cfg, parent_frame="world")
 ```
 
+Convert raw toolpaths to lightweight pose objects without running ROS:
+
+```python
+from cam_slicer.ros_transform_adapter import toolpath_to_pose_list
+
+poses = toolpath_to_pose_list([(0, 0, 0), (1, 2, 3)])
+# -> [Pose(x=0.0, y=0.0, z=0.0), Pose(x=1.0, y=2.0, z=3.0)]
+```
+
 
 ### GeoFence
 
