@@ -956,10 +956,10 @@ from cam_slicer.ai.debris import (
     plan_toolpath_avoiding_debris,
 )
 
-remind = add_debris_zones_from_image("workspace.jpg", geo_fence)
+boxes = add_debris_zones_from_image("workspace.jpg", geo_fence)
 safe_path = plan_toolpath_avoiding_debris(toolpath, geo_fence)
-if remind:
-    print("Clean table reminder")
+if not boxes:
+    print("No debris detected or detection unavailable")
 ```
 Use the **Debris scan & avoid** button in the *Export & Streaming* panel of the UI to perform this check before running a job.
 
