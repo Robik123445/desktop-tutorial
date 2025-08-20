@@ -6,6 +6,16 @@ Full documentation: https://example.github.io/cam_slicer/
 
 Simple engine to generate headers and footers for CNC controllers and to modify toolpaths.
 
+## Installation
+
+Use a virtual environment and install required packages, including FastAPI and the HTTPX client used in tests:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Usage
 
 Create `ControllerConfig` with `CONTROLLER_TYPE` set to supported type (`grbl` or `smoothie`) and call `_get_header_footer()`.
