@@ -3,10 +3,51 @@ from __future__ import annotations
 
 from importlib import import_module
 from typing import Any
+import logging
 
 from .logging_config import setup_logging, setup_night_logging
 
 setup_logging()
+
+# Try importing plugin helpers. If unavailable, create no-op fallbacks that
+# only log the attempted use. The logger writes to ``log.txt`` so failures are
+# still visible to developers.
+try:  # pragma: no cover - exercised via tests
+    from .plugin_manager import (
+        load_plugins,
+        get_plugin,
+        get_all_plugins,
+        reload_plugins,
+        execute_plugin,
+    )
+except Exception:  # pragma: no cover - missing optional deps
+    _pm_logger = logging.getLogger(__name__)
+    _pm_logger.addHandler(logging.FileHandler("log.txt"))
+    _pm_logger.setLevel(logging.WARNING)
+
+    def load_plugins(*_args, **_kwargs) -> None:
+        """No-op when plugin manager is unavailable."""
+        _pm_logger.warning("load_plugins called but plugin_manager missing")
+
+    def get_plugin(*_args, **_kwargs) -> None:
+        """Return ``None`` when plugin manager is unavailable."""
+        _pm_logger.warning("get_plugin called but plugin_manager missing")
+        return None
+
+    def get_all_plugins(*_args, **_kwargs) -> list:
+        """Return empty list when plugin manager is unavailable."""
+        _pm_logger.warning("get_all_plugins called but plugin_manager missing")
+        return []
+
+    def reload_plugins(*_args, **_kwargs) -> None:
+        """No-op when plugin manager is unavailable."""
+        _pm_logger.warning("reload_plugins called but plugin_manager missing")
+
+    def execute_plugin(*_args, **_kwargs) -> None:
+        """Return ``None`` when plugin manager is unavailable."""
+        _pm_logger.warning("execute_plugin called but plugin_manager missing")
+        return None
+
 
 _LAZY_MODULES = {"plugin_manager", "plugin_marketplace", "workflow_manager"}
 
@@ -58,6 +99,11 @@ __all__ = [
     "setup_logging",
     "setup_night_logging",
     "create_app",
+    "load_plugins",
+    "get_plugin",
+    "get_all_plugins",
+    "reload_plugins",
+    "execute_plugin",
     *_LAZY_MODULES,
     *_LAZY_FUNCTIONS.keys(),
 ]
