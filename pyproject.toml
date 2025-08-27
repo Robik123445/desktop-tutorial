@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cam-slicer"
+version = "0.1.0"
+description = "CAM Slicer toolkit (streaming, API, vision-to-CNC)"
+readme = "README.md"
+requires-python = ">=3.9"
+# Dependencies are defined in requirements.txt; nothing is added here.
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cam_slicer*"]
+
+[project.scripts]
+camslicer-api = "cam_slicer.cli:run_api"
+camslicer-vision = "cam_slicer.vision_bridge:main"
+camslicer-send = "cam_slicer.cli:send_gcode_cli"
+camslicer-ports = "cam_slicer.cli:list_ports_cli"
+camslicer-mm = "cam_slicer.cli_machine_manager:main"

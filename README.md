@@ -14,9 +14,20 @@ Use a virtual environment and install required packages, including FastAPI and t
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 ```
 
 ## Usage
+
+### CLI tools
+After installation you can use:
+
+- `camslicer-ports` – list available serial ports
+- `camslicer-send file.gcode /dev/ttyUSB0` – stream G-code to GRBL
+- `camslicer-vision` – open interactive camera calibration window
+- `camslicer-api` – run FastAPI server on port 8000
+- `camslicer-mm` – manage multiple machines
+
 
 Create `ControllerConfig` with `CONTROLLER_TYPE` set to supported type (`grbl` or `smoothie`) and call `_get_header_footer()`.
 Toolpaths can be processed with `process_toolpath()` using different cutting strategies.
