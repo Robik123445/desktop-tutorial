@@ -1843,3 +1843,25 @@ result = run_strategy(toolpath, strategy, depth=-1)
 ```
 All actions are logged to `logs/central.log`.
 
+## Vision-to-CNC (camera→XY→G-code)
+
+Interactive pipeline that maps camera pixels to machine coordinates and streams
+safe G-code moves to GRBL.
+
+```bash
+python3 scripts/vision_to_cnc.py
+```
+
+Workflow: calibrate three points, click target, press **M** to move.
+
+API usage:
+
+```
+uvicorn cam_slicer.api_server:create_app --reload
+```
+
+Then call:
+
+* `POST /vision/calibrate` with three points
+* `POST /vision/move_to` with `pixel_u`, `pixel_v`, optional `port` and `baud`
+
