@@ -3,11 +3,14 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
+from typing import Optional
+import json
+import numpy as np
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from cam_slicer.logging_config import setup_logging
 from cam_slicer.plugin_manager import (
@@ -152,5 +155,129 @@ def list_ports(token: str = Depends(verify_token)) -> list[str]:
     except Exception as exc:
         logging.error("Failed to list ports: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc))
+
+# --- calibration helpers ---
+_CALIB_PATH = Path("vision_affine.npz")
+
+
+def _save_affine(M: np.ndarray) -> None:
+    """Persist affine matrix to disk."""
+    _CALIB_PATH.parent.mkdir(exist_ok=True)
+    np.savez(_CALIB_PATH, M=M)
+
+
+def _load_affine() -> Optional[np.ndarray]:
+    """Load affine matrix from disk if it exists."""
+    if _CALIB_PATH.exists():
+        data = np.load(_CALIB_PATH)
+        return data["M"]
+    return None
+
+
+def _px_to_xy(px_u: float, px_v: float, M: np.ndarray) -> tuple[float, float]:
+    """Convert pixel coordinates to machine XY using matrix M."""
+    uv1 = np.array([px_u, px_v, 1.0], dtype=np.float64)
+    xy = (M @ uv1.reshape(3, 1)).ravel()
+    return float(xy[0]), float(xy[1])
+
+
+def _write_move_gcode(x: float, y: float, path: Path) -> Path:
+    """Create a small G-code file for safe rapid move."""
+    lines = [
+        "G21",
+        "G90",
+        "G0 Z10.000",
+        f"G0 X{float(x):.3f} Y{float(y):.3f} F1500.0",
+        "M2",
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+# --- Pydantic models ---
+class CalibPoint(BaseModel):
+    pixel_u: float
+    pixel_v: float
+    machine_x: float
+    machine_y: float
+
+
+class VisionCalibIn(BaseModel):
+    points: list[CalibPoint] = Field(min_items=3, max_items=3, description="Exactly 3 points.")
+
+
+class VisionCalibOut(BaseModel):
+    matrix: list[list[float]]
+
+
+class VisionMoveIn(BaseModel):
+    pixel_u: float
+    pixel_v: float
+    port: str = "/dev/ttyUSB0"
+    baud: int = 115200
+
+
+class VisionMoveOut(BaseModel):
+    x: float
+    y: float
+    gcode_path: str
+
+
+# --- routes ---
+@app.post("/vision/calibrate", response_model=VisionCalibOut, dependencies=[Depends(verify_token)])
+def vision_calibrate(payload: VisionCalibIn):
+    """Compute and store affine calibration from three pixel/XY pairs."""
+    try:
+        import cv2
+        src = np.array([[p.pixel_u, p.pixel_v] for p in payload.points], dtype=np.float32)
+        dst = np.array([[p.machine_x, p.machine_y] for p in payload.points], dtype=np.float32)
+        M, _ = cv2.estimateAffine2D(src, dst)
+        if M is None:
+            raise HTTPException(status_code=400, detail="Calibration failed")
+        logger.info("vision calibration %s", json.dumps(M.tolist()))
+        _save_affine(M)
+        return {"matrix": M.tolist()}
+    except HTTPException:
+        raise
+    except Exception as e:  # pragma: no cover - calibration failures
+        logger.exception("vision_calibrate error")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/vision/calibration", response_model=VisionCalibOut, dependencies=[Depends(verify_token)])
+def vision_get_calibration():
+    """Return previously stored affine matrix."""
+    M = _load_affine()
+    if M is None:
+        raise HTTPException(status_code=404, detail="No calibration")
+    return {"matrix": M.tolist()}
+
+
+@app.post("/vision/move_to", response_model=VisionMoveOut, dependencies=[Depends(verify_token)])
+def vision_move_to(payload: VisionMoveIn):
+    """Convert pixel position to machine move and stream to GRBL."""
+    try:
+        M = _load_affine()
+        if M is None:
+            raise HTTPException(status_code=400, detail="No calibration. Call /vision/calibrate first.")
+        x, y = _px_to_xy(payload.pixel_u, payload.pixel_v, M)
+        gpath = Path("move_to_target_api.gcode")
+        _write_move_gcode(x, y, gpath)
+        try:
+            import serial, time
+            with serial.Serial(payload.port, payload.baud, timeout=1) as ser:
+                ser.write(b"\r\n\r\n"); time.sleep(2); ser.reset_input_buffer()
+                ser.write(b"$X\n"); time.sleep(0.2)
+        except Exception:  # pragma: no cover - serial optional
+            pass
+        from cam_slicer.sender.serial_streamer import stream_gcode_to_grbl
+        stream_gcode_to_grbl(str(gpath), payload.port, baud=payload.baud)
+        return {"x": x, "y": y, "gcode_path": str(gpath)}
+    except HTTPException:
+        raise
+    except Exception as e:  # pragma: no cover - hardware failures
+        logger.exception("vision_move_to error")
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 __all__ = ["app", "create_app"]
