@@ -33,6 +33,7 @@ from cam_slicer.ai.analyzers import (
 from cam_slicer.sender import list_available_ports
 from cam_slicer.probing import probe_heightmap
 from cam_slicer.heightmap import HeightMap, apply_heightmap_to_gcode
+from cam_slicer.vision.camera_router import router as vision_router
 
 app = FastAPI(title="CAM Slicer API")
 
@@ -61,6 +62,8 @@ def create_app() -> FastAPI:
         logs_dir = Path("logs")
         logs_dir.mkdir(exist_ok=True)
         app.mount("/logs", StaticFiles(directory=str(logs_dir)), name="logs")
+    if not any(getattr(r, "path", "") == "/vision/cameras" for r in app.routes):
+        app.include_router(vision_router)
 
     return app
 
