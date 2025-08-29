@@ -29,6 +29,18 @@ After installation you can use:
 - `camslicer-mm` – manage multiple machines
 
 
+### Vision REST API
+
+The API server exposes simple camera control:
+
+- `GET /vision/cameras` – list available camera indices.
+- `GET /vision/camera/current` – show stored selection.
+- `POST /vision/camera/select` – validate and persist chosen index.
+
+Selection is saved to `~/.camslicer/camera.json` and reused by `scripts/vision_to_cnc.py`,
+which prefers `--cam` argument over the config file and falls back to index `0`.
+
+
 Create `ControllerConfig` with `CONTROLLER_TYPE` set to supported type (`grbl` or `smoothie`) and call `_get_header_footer()`.
 Toolpaths can be processed with `process_toolpath()` using different cutting strategies.
 
