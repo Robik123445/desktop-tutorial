@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import log from '../src/log.js'; // ← ak je log.js v root/src; viď poznámku nižšie
+import log from './src/log.js';
 
 // Allow users to submit bug reports or suggestions.
 
