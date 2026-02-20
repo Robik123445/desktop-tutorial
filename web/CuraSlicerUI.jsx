@@ -72,7 +72,7 @@ const OPTIONS = {
 export default function CuraStyleUI() {
   const [open, setOpen] = useState({});
   const [active, setActive] = useState(null);
-  const [tool, setTool] = useState('Router');
+  const [tool, setTool] = useState('Spindle');
   const [file, setFile] = useState(null);
   const [transform, setTransform] = useState({ rotation: 0, scale: 1, x: 0, y: 0 });
   const [paths, setPaths] = useState([]); // simplified vector paths
@@ -107,6 +107,181 @@ export default function CuraStyleUI() {
 
   const dummyGcode = 'G1 X0 Y0\nG1 X10 Y0\nG1 X10 Y10';
   const dummyLineCount = dummyGcode.split(/\r?\n/).length;
+
+  /**
+   * Handle clicks on per-section quick actions.
+   * Maps known actions to stable log messages used across the UI/tests.
+   */
+  const handleSectionOptionClick = (option) => {
+    const actionMap = {
+      'Debris scan & avoid': 'debris scan',
+    };
+    log(actionMap[option] || `${option} clicked`);
+  };
+
+  /**
+   * Render right-side inspector panel based on active section.
+   * Import details are shown only for Import section; other sections remain accessible after file drop.
+   */
+  const renderRightPanel = () => {
+    if (active === 'Import & Model') {
+      return file ? (
+        <div>
+          <h2 className="font-semibold">Import Details</h2>
+          <p className="break-all">{file.name}</p>
+          <p>{(file.size / 1024).toFixed(1)} kB</p>
+          <ToolpathTransform onChange={updateTransform} />
+        </div>
+      ) : (
+        <h2 className="font-semibold mb-2">Import & Model Settings</h2>
+      );
+    }
+
+    if (active === 'Tools & Operations') {
+      return (
+        <div>
+          <OperationAssigner paths={paths} onChange={setAssignments} />
+          {paths.map((p, idx) => (
+            <div key={idx} className="mt-2 text-sm">
+              <h4 className="font-semibold">Path {idx + 1} Params</h4>
+              <label className="block">Feedrate
+                <input
+                  type="number"
+                  value={params[idx]?.feedrate || 0}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setParams((ps) => ps.map((p, i) => i === idx ? { ...p, feedrate: val } : p));
+                  }}
+                  className="w-full text-black rounded p-1"
+                />
+              </label>
+              <label className="block">Depth
+                <input
+                  type="number"
+                  value={params[idx]?.depth || 0}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setParams((ps) => ps.map((p, i) => i === idx ? { ...p, depth: val } : p));
+                  }}
+                  className="w-full text-black rounded p-1"
+                />
+              </label>
+            </div>
+          ))}
+          <label className="block text-sm mt-3">
+            <input
+              type="checkbox"
+              className="mr-1"
+              checked={adaptiveMode}
+              onChange={(e) => {
+                setAdaptiveMode(e.target.checked);
+                log(`adaptive mode -> ${e.target.checked}`);
+              }}
+            />
+            Adaptive Toolpath (experimental)
+          </label>
+        </div>
+      );
+    }
+
+    if (active === 'Hybrid Operations') {
+      return (
+        <div>
+          <OperationAssigner paths={paths} onChange={setAssignments} />
+        </div>
+      );
+    }
+
+    if (active === 'Toolpath Optimization') {
+      return <div className="text-sm">Use optimizers from the AI Analyze & Optimize panel.</div>;
+    }
+
+    if (active === 'Simulation') {
+      return (
+        <div>
+          <ToolpathSimulator gcode={dummyGcode} />
+          <div className="text-sm mt-2">
+            <h4 className="font-semibold">Simulation Stats</h4>
+            <p>Lines: {dummyLineCount}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (active === 'Export & Streaming') {
+      return (
+        <div className="space-y-2">
+          <WorkspaceScanner onScan={() => log('scan done')} />
+          <div className="space-x-2">
+            <button onClick={() => log('export grbl')} className="bg-blue-600 px-2 py-1 rounded">GRBL</button>
+            <button onClick={() => log('export marlin')} className="bg-blue-600 px-2 py-1 rounded">Marlin</button>
+            <button onClick={() => log('export klipper')} className="bg-blue-600 px-2 py-1 rounded">Klipper</button>
+            <button onClick={() => log('export custom')} className="bg-blue-600 px-2 py-1 rounded">Custom</button>
+          </div>
+          <GcodeStreamer gcodeLines={dummyGcode.split(/\r?\n/)} fileName="demo.gcode" />
+          <label className="block text-sm mt-2">
+            <input type="checkbox" className="mr-1" onChange={() => log('dry run toggled')} />Dry run only
+          </label>
+        </div>
+      );
+    }
+
+    if (active === 'AI Analyze & Optimize') {
+      return (
+        <div className="space-y-4">
+          <PluginManager plugins={[{ name: 'reverse_path' }, { name: 'adaptive_path' }]} />
+          <ToolpathOptimizer gcode={dummyGcode} />
+        </div>
+      );
+    }
+
+    if (active === 'Experimental features') {
+      return (
+        <div>
+          <label className="block text-sm" title="Toggle experimental adaptive toolpath mode">
+            <input
+              type="checkbox"
+              className="mr-1"
+              checked={adaptiveMode}
+              onChange={(e) => {
+                setAdaptiveMode(e.target.checked);
+                log(`adaptive mode -> ${e.target.checked}`);
+              }}
+            />
+            Adaptive Toolpath (experimental)
+          </label>
+        </div>
+      );
+    }
+
+    if (active === 'Experimental AI') {
+      return (
+        <div className="space-y-4">
+          <SurfaceAnalyzer gcode={dummyGcode} heightmap={{ points: [] }} />
+          <ToolpathOptimizer gcode={dummyGcode} />
+          <p className="text-xs">AI Feedback coming soon...</p>
+        </div>
+      );
+    }
+
+    if (active === 'Experimental – Robot Arm' || active === 'Experimental â Robot Arm') {
+      return <RobotArmPanel />;
+    }
+
+    if (active === 'Diagnostics') {
+      return <DiagnosticsPanel />;
+    }
+
+    if (active === 'Monitoring') {
+      return <MachineMonitor />;
+    }
+
+    if (active) {
+      return <h2 className="font-semibold mb-2">{active} Settings</h2>;
+    }
+
+    return <p>Select a menu section</p>;
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col">
@@ -165,7 +340,7 @@ export default function CuraStyleUI() {
                     <button
                       key={o}
                       className="block w-full text-left hover:underline mt-1"
-                      onClick={() => log(`${o} clicked`)}
+                      onClick={() => handleSectionOptionClick(o)}
                     >
                       {o}
                     </button>
@@ -186,121 +361,7 @@ export default function CuraStyleUI() {
             {assignments.length > 0 && <OperationPreview assignments={assignments} />}
           </div>
           <div className="w-64 m-2 bg-gray-800 rounded p-2" data-testid="right-panel">
-            {file ? (
-              <div>
-                <h2 className="font-semibold">Import Details</h2>
-                <p className="break-all">{file.name}</p>
-                <p>{(file.size / 1024).toFixed(1)} kB</p>
-                <ToolpathTransform onChange={updateTransform} />
-              </div>
-            ) : active === 'Tools & Operations' ? (
-              <div>
-                <OperationAssigner paths={paths} onChange={setAssignments} />
-                {paths.map((p, idx) => (
-                  <div key={idx} className="mt-2 text-sm">
-                    <h4 className="font-semibold">Path {idx + 1} Params</h4>
-                    <label className="block">Feedrate
-                      <input
-                        type="number"
-                        value={params[idx]?.feedrate || 0}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setParams((ps) => ps.map((p, i) => i === idx ? { ...p, feedrate: val } : p));
-                        }}
-                        className="w-full text-black rounded p-1"
-                      />
-                    </label>
-                    <label className="block">Depth
-                      <input
-                        type="number"
-                        value={params[idx]?.depth || 0}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          setParams((ps) => ps.map((p, i) => i === idx ? { ...p, depth: val } : p));
-                        }}
-                        className="w-full text-black rounded p-1"
-                      />
-                  </label>
-                </div>
-              ))}
-              <label className="block text-sm mt-3">
-                <input
-                  type="checkbox"
-                  className="mr-1"
-                  checked={adaptiveMode}
-                  onChange={(e) => {
-                    setAdaptiveMode(e.target.checked);
-                    log(`adaptive mode -> ${e.target.checked}`);
-                  }}
-                />
-                Adaptive Toolpath (experimental)
-              </label>
-            </div>
-            ) : active === 'Hybrid Operations' ? (
-              <div>
-                <OperationAssigner paths={paths} onChange={setAssignments} />
-              </div>
-            ) : active === 'Toolpath Optimization' ? (
-              <div className="text-sm">Use optimizers from the AI Analyze & Optimize panel.</div>
-            ) : active === 'Simulation' ? (
-              <div>
-                <ToolpathSimulator gcode={dummyGcode} />
-                <div className="text-sm mt-2">
-                  <h4 className="font-semibold">Simulation Stats</h4>
-                  <p>Lines: {dummyLineCount}</p>
-                </div>
-              </div>
-            ) : active === 'Export & Streaming' ? (
-              <div className="space-y-2">
-                <WorkspaceScanner onScan={() => log('scan done')} />
-                <div className="space-x-2">
-                  <button onClick={() => log('export grbl')} className="bg-blue-600 px-2 py-1 rounded">GRBL</button>
-                  <button onClick={() => log('export marlin')} className="bg-blue-600 px-2 py-1 rounded">Marlin</button>
-                  <button onClick={() => log('export klipper')} className="bg-blue-600 px-2 py-1 rounded">Klipper</button>
-                  <button onClick={() => log('export custom')} className="bg-blue-600 px-2 py-1 rounded">Custom</button>
-                </div>
-                <GcodeStreamer gcodeLines={dummyGcode.split(/\r?\n/)} fileName="demo.gcode" />
-                <label className="block text-sm mt-2">
-                  <input type="checkbox" className="mr-1" onChange={() => log('dry run toggled')} />Dry run only
-                </label>
-              </div>
-            ) : active === 'AI Analyze & Optimize' ? (
-              <div className="space-y-4">
-                <PluginManager plugins={[{ name: 'reverse_path' }, { name: 'adaptive_path' }]} />
-                <ToolpathOptimizer gcode={dummyGcode} />
-              </div>
-            ) : active === 'Experimental features' ? (
-              <div>
-                <label className="block text-sm" title="Toggle experimental adaptive toolpath mode">
-                  <input
-                    type="checkbox"
-                    className="mr-1"
-                    checked={adaptiveMode}
-                    onChange={(e) => {
-                      setAdaptiveMode(e.target.checked);
-                      log(`adaptive mode -> ${e.target.checked}`);
-                    }}
-                  />
-                  Adaptive Toolpath (experimental)
-                </label>
-              </div>
-            ) : active === 'Experimental AI' ? (
-              <div className="space-y-4">
-                <SurfaceAnalyzer gcode={dummyGcode} heightmap={{ points: [] }} />
-                <ToolpathOptimizer gcode={dummyGcode} />
-                <p className="text-xs">AI Feedback coming soon...</p>
-              </div>
-            ) : active === 'Experimental â Robot Arm' ? (
-              <RobotArmPanel />
-            ) : active === 'Diagnostics' ? (
-              <DiagnosticsPanel />
-            ) : active === 'Monitoring' ? (
-              <MachineMonitor />
-            ) : active ? (
-              <h2 className="font-semibold mb-2">{active} Settings</h2>
-            ) : (
-              <p>Select a menu section</p>
-            )}
+            {renderRightPanel()}
           </div>
         </main>
       </div>
